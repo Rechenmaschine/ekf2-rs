@@ -1,0 +1,40 @@
+[package]
+name = "ekf2"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Safe idiomatic Rust API for PX4 EKF2 navigation filter"
+
+[features]
+# Mirrors ekf2-sys features; enabling here enables in ekf2-sys
+default = ["gnss", "magnetometer", "barometer"]
+
+gnss            = ["ekf2-sys/gnss"]
+gnss-yaw        = ["ekf2-sys/gnss-yaw"]
+magnetometer    = ["ekf2-sys/magnetometer"]
+barometer       = ["ekf2-sys/barometer"]
+baro-compensation = ["barometer", "ekf2-sys/baro-compensation"]
+airspeed        = ["ekf2-sys/airspeed"]
+range-finder    = ["ekf2-sys/range-finder"]
+optical-flow    = ["ekf2-sys/optical-flow"]
+external-vision = ["ekf2-sys/external-vision"]
+aux-vel         = ["ekf2-sys/aux-vel"]
+drag-fusion     = ["ekf2-sys/drag-fusion"]
+wind            = ["ekf2-sys/wind"]
+terrain         = ["ekf2-sys/terrain"]
+gravity-fusion  = ["ekf2-sys/gravity-fusion"]
+sideslip        = ["ekf2-sys/sideslip"]
+
+c-stubs         = ["ekf2-sys/c-stubs"]
+
+# Logging: route C++ EKF2 diagnostics to a Rust handler.
+# `log` and `defmt` dispatch at compile time — no user code needed beyond enabling the feature.
+# `logging` (bare) compiles the shim; use `register_logger!(f)` to supply a custom handler.
+logging         = ["ekf2-sys/logging"]
+
+[dependencies]
+ekf2-sys = { path = "../ekf2-sys" }
+bitflags = "2"
+
+[dev-dependencies]
+static_cell = "2"

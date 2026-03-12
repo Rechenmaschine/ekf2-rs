@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test-linux:
+    name: Test (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libclang-dev
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run workspace tests
+        run: cargo test --workspace
+
+  miri-linux:
+    name: Miri (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libclang-dev
+
+      - name: Install Rust nightly with Miri
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: miri
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run Miri on FFI-free unit tests
+        run: |
+          cargo miri test -p ekf2 --lib --no-default-features error::tests
+          cargo miri test -p ekf2 --lib --no-default-features storage::tests
+          cargo miri test -p ekf2 --lib --no-default-features params::tests
+          cargo miri test -p ekf2-sys --lib --no-default-features height_sensor_from_raw_maps_known_and_unknown_values
+          cargo miri test -p ekf2-sys --lib --no-default-features default_pool_size_is_expected
+          cargo miri test -p ekf2-sys --lib --no-default-features frame_enum_discriminants_match_expected_values
+          cargo miri test -p ekf2-sys --lib --no-default-features imu_sample_new_sets_fields_and_zeroes_clipping
+          cargo miri test -p ekf2-sys --lib --no-default-features imu_sample_with_clipping_encodes_bool_flags
+          cargo miri test -p ekf2-sys --lib gnss_sample_new_initializes_expected_defaults
+          cargo miri test -p ekf2-sys --lib mag_sample_reset_builder_sets_reset_flag
+          cargo miri test -p ekf2-sys --lib baro_sample_reset_builder_sets_reset_flag
+
+  build-targets:
+    name: Build (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - thumbv7em-none-eabihf
+          - thumbv6m-none-eabi
+          - x86_64-unknown-linux-gnu
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libclang-dev
+
+      - name: Install ARM cross compiler
+        if: startsWith(matrix.target, 'thumb')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-arm-none-eabi
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build workspace libraries for target
+        run: cargo build --workspace --lib --target ${{ matrix.target }}

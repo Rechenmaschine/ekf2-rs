@@ -1,0 +1,39 @@
+[package]
+name = "ekf2-sys"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Raw FFI bindings for PX4 EKF2 C++ library"
+links = "ekf2_cpp"
+
+[features]
+# Default: classic fixed-wing/copter sensor suite
+default = ["gnss", "magnetometer", "barometer"]
+
+gnss            = []
+gnss-yaw        = ["gnss"]
+magnetometer    = []
+barometer       = []
+baro-compensation = ["barometer"]
+airspeed        = []
+range-finder    = []
+optical-flow    = []
+external-vision = []
+aux-vel         = []
+drag-fusion     = []
+wind            = []
+terrain         = []
+gravity-fusion  = []
+sideslip        = []
+
+# No-op bare-metal libc stubs (printf, fprintf, puts, fwrite, qsort).
+# Disable if you supply your own implementations.
+c-stubs         = []
+
+# Route C++ diagnostic messages to a Rust handler.
+# Enabled implicitly by ekf2's `log`, `defmt`, and `logging` features.
+logging         = []
+
+[build-dependencies]
+cc      = "1"
+bindgen = "0.70"
