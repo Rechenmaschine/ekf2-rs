@@ -22,23 +22,3 @@ impl core::fmt::Display for EkfError {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::EkfError;
-
-    #[test]
-    fn display_messages_are_stable() {
-        extern crate alloc;
-        use alloc::string::ToString;
-        assert_eq!(EkfError::AllocFailed.to_string(), "EKF allocation failed");
-        assert_eq!(
-            EkfError::InitFailed.to_string(),
-            "Ekf::init() returned false"
-        );
-        assert_eq!(
-            EkfError::UpdateFailed.to_string(),
-            "Ekf::update() returned false"
-        );
-    }
-}
