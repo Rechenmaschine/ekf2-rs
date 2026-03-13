@@ -315,6 +315,7 @@ fn main() {
         // Structs are #[repr(C)] by default via bindgen
         .derive_default(true)
         .derive_copy(true)
+        .derive_debug(true)
         // Avoid pulling in std
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
