@@ -1,39 +1,70 @@
 [package]
-name = "ekf2-sys"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
+authors.workspace = true
+categories = ["embedded", "no-std", "science::robotics"]
 description = "Raw FFI bindings for PX4 EKF2 C++ library"
+documentation = "https://docs.rs/ekf2-sys"
+edition.workspace = true
+include = [
+    "Cargo.toml",
+    "THIRD_PARTY_NOTICES.md",
+    "build.rs",
+    "src/**",
+    "tests/**",
+    "wrapper/**",
+    "vendor/PX4-Autopilot/LICENSE",
+    "vendor/PX4-Autopilot/src/modules/ekf2/**",
+    "!vendor/PX4-Autopilot/src/modules/ekf2/EKF/documentation/**",
+    "!vendor/PX4-Autopilot/src/modules/ekf2/Kconfig",
+    "!vendor/PX4-Autopilot/src/modules/ekf2/params_*.yaml",
+    "!vendor/PX4-Autopilot/src/modules/ekf2/test/**",
+    "vendor/PX4-Autopilot/src/lib/atmosphere/**",
+    "vendor/PX4-Autopilot/src/lib/geo/**",
+    "vendor/PX4-Autopilot/src/lib/lat_lon_alt/**",
+    "vendor/PX4-Autopilot/src/lib/mathlib/**",
+    "vendor/PX4-Autopilot/src/lib/matrix/**",
+    "vendor/PX4-Autopilot/src/lib/ringbuffer/**",
+    "vendor/PX4-Autopilot/src/lib/world_magnetic_model/**",
+]
+keywords = ["px4", "pixhawk", "ekf", "robotics", "bindings"]
+license.workspace = true
 links = "ekf2_cpp"
+name = "ekf2-sys"
+readme = "../README.md"
+repository.workspace = true
+version.workspace = true
 
 [features]
-# Default: classic fixed-wing/copter sensor suite
 default = ["gnss", "magnetometer", "barometer"]
 
-gnss            = []
-gnss-yaw        = ["gnss"]
-magnetometer    = []
-barometer       = []
-baro-compensation = ["barometer"]
-airspeed        = []
-range-finder    = []
-optical-flow    = []
-external-vision = []
-aux-vel         = []
-drag-fusion     = []
-wind            = []
-terrain         = []
-gravity-fusion  = []
-sideslip        = []
+airspeed = []                     # CONFIG_EKF2_AIRSPEED
+aux-vel = []                      # CONFIG_EKF2_AUXVEL
+baro-compensation = ["barometer"] # CONFIG_EKF2_BARO_COMPENSATION
+barometer = []                    # CONFIG_EKF2_BAROMETER
+drag-fusion = []                  # CONFIG_EKF2_DRAG_FUSION
+external-vision = []              # CONFIG_EKF2_EXTERNAL_VISION
+gnss = []                         # CONFIG_EKF2_GNSS
+gnss-yaw = ["gnss"]               # CONFIG_EKF2_GNSS_YAW
+gravity-fusion = []               # CONFIG_EKF2_GRAVITY_FUSION
+magnetometer = []                 # CONFIG_EKF2_MAGNETOMETER
+optical-flow = []                 # CONFIG_EKF2_OPTICAL_FLOW
+range-finder = []                 # CONFIG_EKF2_RANGE_FINDER
+sideslip = []                     # CONFIG_EKF2_SIDESLIP
+terrain = []                      # CONFIG_EKF2_TERRAIN
+wind = []                         # CONFIG_EKF2_WIND
 
-# No-op bare-metal libc stubs (printf, fprintf, puts, fwrite, qsort).
-# Disable if you supply your own implementations.
-c-stubs         = []
+# Provide no-op libc symbols for bare-metal targets that do not have them
+# (`printf`, `fprintf`, `puts`, `fwrite`, `qsort`).
+# You may want to enable this feature for embedded targets to satisfy linker requirements.
+c-stubs = []
 
-# Route C++ diagnostic messages to a Rust handler.
-# Enabled implicitly by ekf2's `log`, `defmt`, and `logging` features.
-logging         = []
+# Keep PX4 ECL info/warn/error calls enabled.
+# This feature does not provide a backend; messages still go through the
+# target's C `printf`/`fprintf` symbols.
+# Note: If `c-stubs` is also enabled, those symbols are no-op stubs, so log output
+# is discarded. To point `printf`/`fprintf` to your own logging implementation,
+# disable `c-stubs` and provide your own symbols.
+logging = []
 
 [build-dependencies]
-cc      = "1"
 bindgen = "0.70"
+cc = "1"

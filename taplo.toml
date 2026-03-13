@@ -1,0 +1,13 @@
+exclude = ["ekf2-sys/vendor/**"]
+
+[formatting]
+array_auto_collapse = true
+array_auto_expand = true
+
+column_width = 140
+reorder_keys = true
+
+indent_string = "    "
+
+align_comments = true
+align_entries = false

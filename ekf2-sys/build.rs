@@ -34,8 +34,9 @@ fn main() {
         panic!(
             "\n\n[ekf2-sys] PX4 vendor sources not found.\n\
              Expected: {}\n\n\
-             Run `git submodule update --init --recursive`.\n\
-             This project pins PX4 via submodule at ekf2-sys/vendor/PX4-Autopilot.\n",
+             If you are building from a git checkout, run `git submodule update --init --recursive`.\n\
+             If you are building from a published crate, the package contents are incomplete and should be reported as a packaging bug.\n\
+             This project stores the PX4 source subset at ekf2-sys/vendor/PX4-Autopilot.\n",
             ekf_header.display()
         );
     }

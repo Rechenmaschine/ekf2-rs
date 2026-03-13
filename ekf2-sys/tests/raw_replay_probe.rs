@@ -11,8 +11,6 @@ use ekf2_sys::{
 
 fn fixture_path(file: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("ekf2")
         .join("tests")
         .join("data")
         .join(file)

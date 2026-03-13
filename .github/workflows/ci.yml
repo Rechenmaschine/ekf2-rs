@@ -41,6 +41,11 @@ jobs:
       - name: Run workspace tests
         run: cargo test --workspace
 
+      - name: Package crates
+        run: |
+          cargo package -p ekf2-sys --locked
+          cargo package -p ekf2 --locked --list > /dev/null
+
   build-targets:
     name: Build (${{ matrix.target }})
     runs-on: ubuntu-latest

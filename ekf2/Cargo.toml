@@ -1,40 +1,47 @@
 [package]
-name = "ekf2"
-version.workspace = true
-edition.workspace = true
-license.workspace = true
+authors.workspace = true
 description = "Safe idiomatic Rust API for PX4 EKF2 navigation filter"
+documentation = "https://docs.rs/ekf2"
+edition.workspace = true
+include = ["Cargo.toml", "src/**", "examples/**", "tests/**"]
+keywords = ["px4", "ekf", "navigation", "embedded", "no-std"]
+license.workspace = true
+name = "ekf2"
+readme = "../README.md"
+repository.workspace = true
+version.workspace = true
 
 [features]
-# Mirrors ekf2-sys features; enabling here enables in ekf2-sys
 default = ["gnss", "magnetometer", "barometer"]
 
-gnss            = ["ekf2-sys/gnss"]
-gnss-yaw        = ["ekf2-sys/gnss-yaw"]
-magnetometer    = ["ekf2-sys/magnetometer"]
-barometer       = ["ekf2-sys/barometer"]
-baro-compensation = ["barometer", "ekf2-sys/baro-compensation"]
-airspeed        = ["ekf2-sys/airspeed"]
-range-finder    = ["ekf2-sys/range-finder"]
-optical-flow    = ["ekf2-sys/optical-flow"]
-external-vision = ["ekf2-sys/external-vision"]
-aux-vel         = ["ekf2-sys/aux-vel"]
-drag-fusion     = ["ekf2-sys/drag-fusion"]
-wind            = ["ekf2-sys/wind"]
-terrain         = ["ekf2-sys/terrain"]
-gravity-fusion  = ["ekf2-sys/gravity-fusion"]
-sideslip        = ["ekf2-sys/sideslip"]
+airspeed = ["ekf2-sys/airspeed"]                                # CONFIG_EKF2_AIRSPEED
+aux-vel = ["ekf2-sys/aux-vel"]                                  # CONFIG_EKF2_AUXVEL
+baro-compensation = ["barometer", "ekf2-sys/baro-compensation"] # CONFIG_EKF2_BARO_COMPENSATION
+barometer = ["ekf2-sys/barometer"]                              # CONFIG_EKF2_BAROMETER
+drag-fusion = ["ekf2-sys/drag-fusion"]                          # CONFIG_EKF2_DRAG_FUSION
+external-vision = ["ekf2-sys/external-vision"]                  # CONFIG_EKF2_EXTERNAL_VISION
+gnss = ["ekf2-sys/gnss"]                                        # CONFIG_EKF2_GNSS
+gnss-yaw = ["ekf2-sys/gnss-yaw"]                                # CONFIG_EKF2_GNSS_YAW
+gravity-fusion = ["ekf2-sys/gravity-fusion"]                    # CONFIG_EKF2_GRAVITY_FUSION
+magnetometer = ["ekf2-sys/magnetometer"]                        # CONFIG_EKF2_MAGNETOMETER
+optical-flow = ["ekf2-sys/optical-flow"]                        # CONFIG_EKF2_OPTICAL_FLOW
+range-finder = ["ekf2-sys/range-finder"]                        # CONFIG_EKF2_RANGE_FINDER
+sideslip = ["ekf2-sys/sideslip"]                                # CONFIG_EKF2_SIDESLIP
+terrain = ["ekf2-sys/terrain"]                                  # CONFIG_EKF2_TERRAIN
+wind = ["ekf2-sys/wind"]                                        # CONFIG_EKF2_WIND
 
-c-stubs         = ["ekf2-sys/c-stubs"]
+c-stubs = ["ekf2-sys/c-stubs"]
 
-# Logging: route C++ EKF2 diagnostics to a Rust handler.
-# `log` and `defmt` dispatch at compile time — no user code needed beyond enabling the feature.
-# `logging` (bare) compiles the shim; use `register_logger!(f)` to supply a custom handler.
-logging         = ["ekf2-sys/logging"]
+# Keep PX4 ECL info/warn/error calls enabled.
+# This feature does not provide a backend; messages still go through the
+# target's C `printf`/`fprintf` symbols.
+# If `c-stubs` is also enabled, those symbols are no-op stubs, so log output
+# is discarded unless you override them with your own implementation.
+logging = ["ekf2-sys/logging"]
 
 [dependencies]
-ekf2-sys = { path = "../ekf2-sys" }
 bitflags = "2"
+ekf2-sys = { version = "0.1.0", path = "../ekf2-sys" }
 
 [dev-dependencies]
 static_cell = "2"

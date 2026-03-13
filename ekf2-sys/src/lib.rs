@@ -1,7 +1,7 @@
 //! Raw FFI bindings for the PX4 EKF2 C++ library.
 //!
 //! This crate is a low-level `unsafe` interface. Most users should use the
-//! safe [`ekf2`] crate instead.
+//! safe [`ekf2`](https://docs.rs/ekf2) crate instead.
 //!
 //! # Feature flags
 //!
@@ -40,7 +40,15 @@ use alloc::alloc::{
 use core::alloc::Layout;
 
 // Generated bindings from ekf2_wrapper.h
-include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+#[doc(hidden)]
+mod generated {
+    #![allow(rustdoc::broken_intra_doc_links)]
+
+    include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
+}
+
+#[doc(inline)]
+pub use generated::*;
 
 #[cfg(all(target_os = "none", feature = "c-stubs"))]
 mod stubs;
@@ -104,13 +112,13 @@ impl HeightSensor {
 /// WGS-84 origin used by the EKF for local↔global position conversion.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct GlobalOrigin {
-    /// Timestamp when the origin was set [µs].
+    /// Timestamp when the origin was set, in microseconds.
     pub time_us: u64,
-    /// Latitude [deg].
+    /// Latitude in degrees.
     pub lat: f64,
-    /// Longitude [deg].
+    /// Longitude in degrees.
     pub lon: f64,
-    /// Altitude above WGS-84 ellipsoid [m].
+    /// Altitude above the WGS-84 ellipsoid, in meters.
     pub alt: f32,
 }
 
@@ -332,7 +340,7 @@ impl EkfExtVisionSample {
     /// Defaults: `pos_frame = LocalFrameNed`, `vel_frame = LocalFrameNed`,
     /// `reset_counter = 0`, `quality = 100` (perfect).
     ///
-    /// `ang_var` is per-axis attitude variance [rad²] for X, Y, Z.
+    /// `ang_var` is per-axis attitude variance in rad^2 for X, Y, Z.
     /// Use `[v; 3]` to broadcast a single scalar variance to all axes.
     #[inline]
     #[allow(clippy::too_many_arguments)]

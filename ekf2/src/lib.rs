@@ -30,7 +30,8 @@
 //! # Feature flags
 //!
 //! Each sensor type is guarded by a Cargo feature (defaults: `gnss`,
-//! `magnetometer`, `barometer`). See [`ekf2-sys`] for the full table.
+//! `magnetometer`, `barometer`). See
+//! [`ekf2-sys`](https://docs.rs/ekf2-sys) for the full table.
 //!
 //! # Memory model
 //!

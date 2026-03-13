@@ -1,20 +1,20 @@
 [workspace]
-resolver = "2"
 members = ["ekf2-sys", "ekf2"]
+resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+authors = ["Louis Schell"]
 edition = "2021"
 license = "BSD-3-Clause"
 repository = "https://github.com/rechenmaschine/ekf2-rs"
-authors = ["Louis Schell"]
+version = "0.1.0"
 
 [profile.release]
-opt-level = 3
-lto = true
 codegen-units = 1
+lto = true
+opt-level = 3
 panic = "abort"
 
 [profile.dev]
-opt-level = 0
 debug = true
+opt-level = 0
