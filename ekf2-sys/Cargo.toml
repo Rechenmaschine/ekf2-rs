@@ -66,5 +66,5 @@ c-stubs = []
 logging = []
 
 [build-dependencies]
-bindgen = "0.70"
+bindgen = "0.72.1"
 cc = "1"
