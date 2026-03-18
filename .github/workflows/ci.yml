@@ -86,15 +86,14 @@ jobs:
           cargo test --manifest-path "$CANONICAL/Cargo.toml"
           SYM_PKG=$(cpp_symbols)
 
-          # Swap in git source files, keeping the extracted Cargo.toml and
-          # Cargo.lock so only the compiled C++ sources change.
-          rm -rf "$CANONICAL/src" "$CANONICAL/wrapper" "$CANONICAL/vendor" \
-                 "$CANONICAL/build.rs" "$CANONICAL/tests"
-          cp -r ekf2-sys/src      "$CANONICAL/src"
-          cp -r ekf2-sys/wrapper  "$CANONICAL/wrapper"
-          cp -r ekf2-sys/vendor   "$CANONICAL/vendor"
-          cp    ekf2-sys/build.rs "$CANONICAL/build.rs"
-          cp -r ekf2-sys/tests    "$CANONICAL/tests"
+          # Swap in the full git source tree, keeping the extracted Cargo.toml
+          # and Cargo.lock so the dependency set is identical.
+          cp "$CANONICAL/Cargo.toml" /tmp/pkg-cargo.toml
+          cp "$CANONICAL/Cargo.lock" /tmp/pkg-cargo.lock
+          rm -rf "$CANONICAL"
+          cp -r ekf2-sys "$CANONICAL"
+          cp /tmp/pkg-cargo.toml "$CANONICAL/Cargo.toml"
+          cp /tmp/pkg-cargo.lock "$CANONICAL/Cargo.lock"
 
           # Build B: git source files — compile the full C++ library and
           # compare symbol tables. This catches missing/extra C++ translation
