@@ -68,18 +68,25 @@ jobs:
       - name: Package ekf2-sys
         run: cargo package -p ekf2-sys --no-verify --locked
 
-      - name: Test packaged ekf2-sys
+      - name: Compare packaged C++ library to git source
         run: |
           set -euo pipefail
           BUILD=$(mktemp -d)
           tar xf target/package/ekf2-sys-*.crate -C "$BUILD"
           CANONICAL="$BUILD/$(ls "$BUILD")"
 
-          # Run A: tests from the extracted tarball
-          cargo test --manifest-path "$CANONICAL/Cargo.toml"
+          cpp_symbols() {
+            local a
+            a=$(find "$CANONICAL/target/debug/build" -name "libekf2_cpp.a")
+            nm "$a" | sort | sha256sum | awk '{print $1}'
+          }
+
+          # Build A: from the extracted tarball — compile the full C++ library
+          cargo build --manifest-path "$CANONICAL/Cargo.toml" --lib
+          SYM_PKG=$(cpp_symbols)
 
           # Swap in git source files, keeping the extracted Cargo.toml and
-          # Cargo.lock so the dependency set is identical.
+          # Cargo.lock so only the compiled C++ sources change.
           rm -rf "$CANONICAL/src" "$CANONICAL/wrapper" "$CANONICAL/vendor" \
                  "$CANONICAL/build.rs" "$CANONICAL/tests"
           cp -r ekf2-sys/src      "$CANONICAL/src"
@@ -88,9 +95,16 @@ jobs:
           cp    ekf2-sys/build.rs "$CANONICAL/build.rs"
           cp -r ekf2-sys/tests    "$CANONICAL/tests"
 
-          # Run B: same tests from git source — both must pass
+          # Build B: git source files — same C++ library compiled from git tree
           cargo clean --manifest-path "$CANONICAL/Cargo.toml"
-          cargo test --manifest-path "$CANONICAL/Cargo.toml"
+          cargo build --manifest-path "$CANONICAL/Cargo.toml" --lib
+          SYM_GIT=$(cpp_symbols)
+
+          echo "Package symbols: $SYM_PKG"
+          echo "Git symbols:     $SYM_GIT"
+          [ "$SYM_PKG" = "$SYM_GIT" ] \
+            && echo "PASS: C++ symbol table is identical" \
+            || { echo "FAIL: symbol tables differ — package is missing or has wrong C++ sources"; exit 1; }
 
   build-targets:
     name: Build (${{ matrix.target }})
