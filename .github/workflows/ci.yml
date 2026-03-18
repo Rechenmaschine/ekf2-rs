@@ -41,10 +41,89 @@ jobs:
       - name: Run workspace tests
         run: cargo test --workspace
 
+  test-packaged:
+    name: Test packaged crates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libclang-dev
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ci-packaged
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
       - name: Package crates
         run: |
-          cargo package -p ekf2-sys --locked
-          cargo package -p ekf2 --locked --list > /dev/null
+          # ekf2-sys: full package (contains all C++ vendor sources)
+          cargo package -p ekf2-sys --no-verify --locked
+          # ekf2: can't package without ekf2-sys on crates.io yet; verify
+          # the include list is correct and test it against the extracted
+          # ekf2-sys tarball below.
+          cargo package -p ekf2 --no-verify --locked --list > /dev/null
+
+      - name: Build and test from extracted packages
+        run: |
+          set -euo pipefail
+          STAGING=$(mktemp -d)
+
+          # Extract the packaged ekf2-sys tarball (what crates.io would serve)
+          tar xf target/package/ekf2-sys-*.crate -C "$STAGING"
+          EKF2_SYS_DIR=$(basename "$(ls -d "$STAGING"/ekf2-sys-*/)")
+
+          # Derive version and workspace metadata from the actual Cargo.toml
+          # so this script stays correct across version bumps.
+          VERSION=$(cargo metadata --no-deps --format-version 1 \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); \
+                print(next(p['version'] for p in d['packages'] if p['name']=='ekf2-sys'))")
+          AUTHORS=$(cargo metadata --no-deps --format-version 1 \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); \
+                print(next(p['authors'][0] for p in d['packages'] if p['name']=='ekf2-sys'))")
+          REPOSITORY=$(cargo metadata --no-deps --format-version 1 \
+            | python3 -c "import sys,json; d=json.load(sys.stdin); \
+                print(next(p['repository'] for p in d['packages'] if p['name']=='ekf2-sys'))")
+
+          # ekf2 can't be packaged standalone until ekf2-sys is on crates.io,
+          # so copy the git source and strip the path dep (replicating what
+          # `cargo publish` would do to Cargo.toml).
+          cp -r ekf2 "$STAGING/ekf2-src"
+          sed -i "s|{ version = \"$VERSION\", path = \"../ekf2-sys\" }|{ version = \"$VERSION\" }|" \
+            "$STAGING/ekf2-src/Cargo.toml"
+
+          # Create a wrapper workspace. [workspace.package] satisfies the
+          # workspace-key inheritance in ekf2-src/Cargo.toml. [patch.crates-io]
+          # redirects ekf2's ekf2-sys dep to the extracted tarball so the
+          # build never touches crates.io.
+          {
+            echo '[workspace]'
+            echo "members = [\"$EKF2_SYS_DIR\", \"ekf2-src\"]"
+            echo 'resolver = "2"'
+            echo ''
+            echo '[workspace.package]'
+            echo 'edition = "2021"'
+            echo "authors = [\"$AUTHORS\"]"
+            echo 'license = "BSD-3-Clause"'
+            echo "repository = \"$REPOSITORY\""
+            echo "version = \"$VERSION\""
+            echo ''
+            echo '[patch.crates-io]'
+            echo "ekf2-sys = { path = \"$EKF2_SYS_DIR\" }"
+          } > "$STAGING/Cargo.toml"
+
+          cargo build --manifest-path "$STAGING/Cargo.toml" --workspace
+          cargo test  --manifest-path "$STAGING/Cargo.toml" --workspace
 
   build-targets:
     name: Build (${{ matrix.target }})
