@@ -81,8 +81,9 @@ jobs:
             nm "$a" | sort | sha256sum | awk '{print $1}'
           }
 
-          # Build A: from the extracted tarball — compile the full C++ library
-          cargo build --manifest-path "$CANONICAL/Cargo.toml" --lib
+          # Build A: from the extracted tarball.
+          # Run tests first — catches missing test fixtures, data files, etc.
+          cargo test --manifest-path "$CANONICAL/Cargo.toml"
           SYM_PKG=$(cpp_symbols)
 
           # Swap in git source files, keeping the extracted Cargo.toml and
@@ -95,7 +96,9 @@ jobs:
           cp    ekf2-sys/build.rs "$CANONICAL/build.rs"
           cp -r ekf2-sys/tests    "$CANONICAL/tests"
 
-          # Build B: git source files — same C++ library compiled from git tree
+          # Build B: git source files — compile the full C++ library and
+          # compare symbol tables. This catches missing/extra C++ translation
+          # units that tests might not exercise.
           cargo clean --manifest-path "$CANONICAL/Cargo.toml"
           cargo build --manifest-path "$CANONICAL/Cargo.toml" --lib
           SYM_GIT=$(cpp_symbols)
