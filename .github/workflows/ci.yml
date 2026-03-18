@@ -41,10 +41,72 @@ jobs:
       - name: Run workspace tests
         run: cargo test --workspace
 
-      - name: Package crates
+  test-packaged:
+    name: Test packaged crates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install system dependencies
         run: |
-          cargo package -p ekf2-sys --locked
-          cargo package -p ekf2 --locked --list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y libclang-dev
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: ci-packaged
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Package ekf2-sys
+        run: cargo package -p ekf2-sys --no-verify --locked
+
+      - name: Compare packaged C++ library to git source
+        run: |
+          set -euo pipefail
+          BUILD=$(mktemp -d)
+          tar xf target/package/ekf2-sys-*.crate -C "$BUILD"
+          CANONICAL=$(ls -d "$BUILD"/ekf2-sys-*)
+
+          cpp_symbols() {
+            local a
+            a=$(find "$CANONICAL/target/debug/build" -name "libekf2_cpp.a")
+            nm "$a" | sort | sha256sum | awk '{print $1}'
+          }
+
+          # Build A: from the extracted tarball.
+          # Run tests first — catches missing test fixtures, data files, etc.
+          cargo test --manifest-path "$CANONICAL/Cargo.toml"
+          SYM_PKG=$(cpp_symbols)
+
+          # Swap in the full git source tree, keeping the extracted Cargo.toml
+          # and Cargo.lock so the dependency set is identical.
+          cp "$CANONICAL/Cargo.toml" "$BUILD/Cargo.toml.pkg"
+          cp "$CANONICAL/Cargo.lock" "$BUILD/Cargo.lock.pkg"
+          rm -rf "$CANONICAL"
+          cp -r ekf2-sys "$CANONICAL"
+          cp "$BUILD/Cargo.toml.pkg" "$CANONICAL/Cargo.toml"
+          cp "$BUILD/Cargo.lock.pkg" "$CANONICAL/Cargo.lock"
+
+          # Build B: git source files — compile the full C++ library and
+          # compare symbol tables. This catches missing/extra C++ translation
+          # units that tests might not exercise.
+          cargo clean --manifest-path "$CANONICAL/Cargo.toml"
+          cargo build --manifest-path "$CANONICAL/Cargo.toml" --lib
+          SYM_GIT=$(cpp_symbols)
+
+          echo "Package symbols: $SYM_PKG"
+          echo "Git symbols:     $SYM_GIT"
+          [ "$SYM_PKG" = "$SYM_GIT" ] \
+            && echo "PASS: C++ symbol table is identical" \
+            || { echo "FAIL: symbol tables differ — package is missing or has wrong C++ sources"; exit 1; }
 
   build-targets:
     name: Build (${{ matrix.target }})
