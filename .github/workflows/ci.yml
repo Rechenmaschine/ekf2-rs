@@ -73,7 +73,7 @@ jobs:
           set -euo pipefail
           BUILD=$(mktemp -d)
           tar xf target/package/ekf2-sys-*.crate -C "$BUILD"
-          CANONICAL="$BUILD/$(ls "$BUILD")"
+          CANONICAL=$(ls -d "$BUILD"/ekf2-sys-*)
 
           cpp_symbols() {
             local a
@@ -88,12 +88,12 @@ jobs:
 
           # Swap in the full git source tree, keeping the extracted Cargo.toml
           # and Cargo.lock so the dependency set is identical.
-          cp "$CANONICAL/Cargo.toml" /tmp/pkg-cargo.toml
-          cp "$CANONICAL/Cargo.lock" /tmp/pkg-cargo.lock
+          cp "$CANONICAL/Cargo.toml" "$BUILD/Cargo.toml.pkg"
+          cp "$CANONICAL/Cargo.lock" "$BUILD/Cargo.lock.pkg"
           rm -rf "$CANONICAL"
           cp -r ekf2-sys "$CANONICAL"
-          cp /tmp/pkg-cargo.toml "$CANONICAL/Cargo.toml"
-          cp /tmp/pkg-cargo.lock "$CANONICAL/Cargo.lock"
+          cp "$BUILD/Cargo.toml.pkg" "$CANONICAL/Cargo.toml"
+          cp "$BUILD/Cargo.lock.pkg" "$CANONICAL/Cargo.lock"
 
           # Build B: git source files — compile the full C++ library and
           # compare symbol tables. This catches missing/extra C++ translation
