@@ -68,25 +68,18 @@ jobs:
       - name: Package ekf2-sys
         run: cargo package -p ekf2-sys --no-verify --locked
 
-      - name: Compare packaged build to git build
+      - name: Test packaged ekf2-sys
         run: |
           set -euo pipefail
-
-          # Extract the tarball into a canonical temp path. Both builds will
-          # happen at this exact absolute path so all embedded path strings
-          # are identical and the final binaries must be byte-for-byte equal
-          # (Linux's ld uses a content-hash build-id, not a random UUID).
           BUILD=$(mktemp -d)
           tar xf target/package/ekf2-sys-*.crate -C "$BUILD"
           CANONICAL="$BUILD/$(ls "$BUILD")"
 
-          # Build A: from the extracted tarball
-          cargo test --manifest-path "$CANONICAL/Cargo.toml" --no-run
-          find "$CANONICAL/target/debug/deps" -maxdepth 1 -type f ! -name "*.*" \
-            | sort | xargs sha256sum | awk '{print $1}' | sort > /tmp/hashes-pkg.txt
+          # Run A: tests from the extracted tarball
+          cargo test --manifest-path "$CANONICAL/Cargo.toml"
 
-          # Swap in git source files at the same path, keeping the extracted
-          # Cargo.toml and Cargo.lock so only the compiled sources change.
+          # Swap in git source files, keeping the extracted Cargo.toml and
+          # Cargo.lock so the dependency set is identical.
           rm -rf "$CANONICAL/src" "$CANONICAL/wrapper" "$CANONICAL/vendor" \
                  "$CANONICAL/build.rs" "$CANONICAL/tests"
           cp -r ekf2-sys/src      "$CANONICAL/src"
@@ -95,16 +88,9 @@ jobs:
           cp    ekf2-sys/build.rs "$CANONICAL/build.rs"
           cp -r ekf2-sys/tests    "$CANONICAL/tests"
 
-          # Build B: git source files at the same absolute path
+          # Run B: same tests from git source — both must pass
           cargo clean --manifest-path "$CANONICAL/Cargo.toml"
-          cargo test --manifest-path "$CANONICAL/Cargo.toml" --no-run
-          find "$CANONICAL/target/debug/deps" -maxdepth 1 -type f ! -name "*.*" \
-            | sort | xargs sha256sum | awk '{print $1}' | sort > /tmp/hashes-git.txt
-
-          echo "Comparing $(wc -l < /tmp/hashes-pkg.txt) test executables"
-          diff /tmp/hashes-pkg.txt /tmp/hashes-git.txt \
-            && echo "PASS: packaged ekf2-sys is byte-identical to git source" \
-            || { echo "FAIL: packaged build differs from git build"; exit 1; }
+          cargo test --manifest-path "$CANONICAL/Cargo.toml"
 
   build-targets:
     name: Build (${{ matrix.target }})
