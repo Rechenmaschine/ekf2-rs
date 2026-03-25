@@ -431,6 +431,5 @@ pub struct ParamsMut<'a> {
     pub(crate) _marker: PhantomData<&'a mut ()>,
 }
 
-
 mod getters;
 mod setters;
