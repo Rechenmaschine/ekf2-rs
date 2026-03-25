@@ -64,9 +64,9 @@ pub use params::{
 };
 
 // Output types returned by EKF methods — re-exported so users don't need to depend on ekf2-sys.
+pub use ekf2_sys::EkfBiasEstimatorStatus as BiasEstimatorStatus;
 pub use ekf2_sys::{
     EkfAidSource1d as AidSource1d, EkfAidSource2d as AidSource2d, EkfAidSource3d as AidSource3d,
 };
-pub use ekf2_sys::EkfBiasEstimatorStatus as BiasEstimatorStatus;
 pub use ekf2_sys::{GlobalOrigin, HeightSensor};
 pub use types::{PositionFrame, VelocityFrame};
