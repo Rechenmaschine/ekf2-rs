@@ -61,9 +61,8 @@ fn main() {
         ("SIDESLIP", "CONFIG_EKF2_SIDESLIP"),
     ];
 
-    let is_feature_enabled = |feat_upper: &str| -> bool {
-        env::var(format!("CARGO_FEATURE_{}", feat_upper)).is_ok()
-    };
+    let is_feature_enabled =
+        |feat_upper: &str| -> bool { env::var(format!("CARGO_FEATURE_{}", feat_upper)).is_ok() };
 
     let mut active_defines: Vec<(&str, &str)> = Vec::new();
     for &(feat_upper, define) in features {
