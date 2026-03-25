@@ -11,6 +11,9 @@ pub enum EkfError {
 
     /// The C++ `Ekf::update()` returned `false`.
     UpdateFailed,
+
+    /// A fallible operation returned `false`.
+    OperationFailed,
 }
 
 impl core::fmt::Display for EkfError {
@@ -19,6 +22,7 @@ impl core::fmt::Display for EkfError {
             Self::AllocFailed => write!(f, "EKF allocation failed"),
             Self::InitFailed => write!(f, "Ekf::init() returned false"),
             Self::UpdateFailed => write!(f, "Ekf::update() returned false"),
+            Self::OperationFailed => write!(f, "EKF operation failed"),
         }
     }
 }

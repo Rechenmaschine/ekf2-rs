@@ -508,8 +508,10 @@ impl Ekf {
         alt: f32,
         hpos_var: f32,
         vpos_var: f32,
-    ) -> bool {
-        unsafe { ffi::ekf2_set_global_origin(self.ptr(), lat, lon, alt, hpos_var, vpos_var) }
+    ) -> Result<(), EkfError> {
+        let ok =
+            unsafe { ffi::ekf2_set_global_origin(self.ptr(), lat, lon, alt, hpos_var, vpos_var) };
+        if ok { Ok(()) } else { Err(EkfError::OperationFailed) }
     }
 
     #[inline]
@@ -520,8 +522,11 @@ impl Ekf {
         alt: f32,
         hpos_var: f32,
         vpos_var: f32,
-    ) -> bool {
-        unsafe { ffi::ekf2_reset_global_position(self.ptr(), lat, lon, alt, hpos_var, vpos_var) }
+    ) -> Result<(), EkfError> {
+        let ok = unsafe {
+            ffi::ekf2_reset_global_position(self.ptr(), lat, lon, alt, hpos_var, vpos_var)
+        };
+        if ok { Ok(()) } else { Err(EkfError::OperationFailed) }
     }
 
     #[inline]
@@ -533,8 +538,8 @@ impl Ekf {
         eph: f32,
         epv: f32,
         timestamp_observation: u64,
-    ) -> bool {
-        unsafe {
+    ) -> Result<(), EkfError> {
+        let ok = unsafe {
             ffi::ekf2_reset_global_position_to_external_observation(
                 self.ptr(),
                 lat,
@@ -544,7 +549,8 @@ impl Ekf {
                 epv,
                 timestamp_observation,
             )
-        }
+        };
+        if ok { Ok(()) } else { Err(EkfError::OperationFailed) }
     }
 
     #[inline]
