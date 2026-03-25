@@ -15,7 +15,8 @@ fn reset_succeeds_on_fresh_instance() {
 fn reset_succeeds_after_imu_updates() {
     let mut ekf = Ekf::new(0).expect("init should succeed");
     let _ = feed_imu(&mut ekf, 100_000, 200, 0.0001);
-    ekf.reset(5_000_000).expect("reset after updates should succeed");
+    ekf.reset(5_000_000)
+        .expect("reset after updates should succeed");
 }
 
 // ── State is wiped ──────────────────────────────────────────────────────────
@@ -94,7 +95,10 @@ fn repeated_resets_remain_stable() {
         let _ = feed_imu(&mut ekf, base_ts + 100_000, 80, 0.0002);
 
         let q = ekf.quaternion();
-        assert!(q.iter().all(|v| v.is_finite()), "cycle {cycle}: finite quaternion");
+        assert!(
+            q.iter().all(|v| v.is_finite()),
+            "cycle {cycle}: finite quaternion"
+        );
 
         ekf.reset(base_ts + 1_000_000)
             .unwrap_or_else(|e| panic!("cycle {cycle}: reset failed: {e:?}"));
