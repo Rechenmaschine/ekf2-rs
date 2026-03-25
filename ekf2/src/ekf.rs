@@ -32,6 +32,12 @@ pub struct Ekf {
     _not_send_sync: PhantomData<*mut ()>,
 }
 
+impl Drop for Ekf {
+    fn drop(&mut self) {
+        unsafe { ffi::ekf2_destroy_heap(self.ptr.as_ptr()) };
+    }
+}
+
 impl Ekf {
     /// Create and initialize a new EKF2 filter instance.
     ///
@@ -1244,11 +1250,5 @@ impl Ekf {
     #[inline]
     pub fn set_min_required_gps_health_time(&mut self, time_us: u32) {
         unsafe { ffi::ekf2_set_min_required_gps_health_time(self.ptr(), time_us) };
-    }
-}
-
-impl Drop for Ekf {
-    fn drop(&mut self) {
-        unsafe { ffi::ekf2_destroy_heap(self.ptr()) };
     }
 }
