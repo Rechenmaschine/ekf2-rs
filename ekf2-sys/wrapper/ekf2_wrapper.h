@@ -301,6 +301,12 @@ bool ekf2_update(void* self);
  */
 void ekf2_destroy(void* self);
 
+/**
+ * Reset the filter: destroy in-place and re-construct + re-init.
+ * No memory is freed or allocated for the Ekf object itself.
+ */
+bool ekf2_reset(void* self, uint64_t timestamp_us);
+
 /* =========================================================================
  * Sensor inputs — always available (IMU is mandatory)
  * ========================================================================= */

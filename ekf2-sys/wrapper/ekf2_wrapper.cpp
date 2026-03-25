@@ -188,6 +188,13 @@ extern "C" void ekf2_destroy(void* self)
     as_ekf(self)->~Ekf();
 }
 
+extern "C" bool ekf2_reset(void* self, uint64_t timestamp_us)
+{
+    as_ekf(self)->~Ekf();
+    ::new (self) Ekf();
+    return as_ekf(self)->init(timestamp_us);
+}
+
 // ── IMU (always present) ──────────────────────────────────────────────────
 
 extern "C" void ekf2_set_imu_data(void* self, const EkfImuSample* s)
