@@ -511,7 +511,11 @@ impl Ekf {
     ) -> Result<(), EkfError> {
         let ok =
             unsafe { ffi::ekf2_set_global_origin(self.ptr(), lat, lon, alt, hpos_var, vpos_var) };
-        if ok { Ok(()) } else { Err(EkfError::OperationFailed) }
+        if ok {
+            Ok(())
+        } else {
+            Err(EkfError::OperationFailed)
+        }
     }
 
     #[inline]
@@ -526,7 +530,11 @@ impl Ekf {
         let ok = unsafe {
             ffi::ekf2_reset_global_position(self.ptr(), lat, lon, alt, hpos_var, vpos_var)
         };
-        if ok { Ok(()) } else { Err(EkfError::OperationFailed) }
+        if ok {
+            Ok(())
+        } else {
+            Err(EkfError::OperationFailed)
+        }
     }
 
     #[inline]
@@ -550,7 +558,11 @@ impl Ekf {
                 timestamp_observation,
             )
         };
-        if ok { Ok(()) } else { Err(EkfError::OperationFailed) }
+        if ok {
+            Ok(())
+        } else {
+            Err(EkfError::OperationFailed)
+        }
     }
 
     #[inline]
