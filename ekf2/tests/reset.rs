@@ -1,4 +1,4 @@
-use ekf2::{types::ImuSample, Ekf, EkfError};
+use ekf2::Ekf;
 
 mod common;
 use common::{feed_imu, quat_norm};
