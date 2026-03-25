@@ -91,6 +91,19 @@ impl Ekf {
         }
     }
 
+    /// Reset the filter by destroying and re-constructing the C++ object
+    /// in-place, then re-initializing with the given timestamp.
+    ///
+    /// This avoids heap reallocation. All filter state is wiped.
+    pub fn reset(&mut self, timestamp_us: u64) -> Result<(), EkfError> {
+        let ok = unsafe { ffi::ekf2_reset(self.ptr(), timestamp_us) };
+        if ok {
+            Ok(())
+        } else {
+            Err(EkfError::InitFailed)
+        }
+    }
+
     #[inline]
     pub fn set_imu_data(&mut self, sample: &ImuSample) {
         unsafe { ffi::ekf2_set_imu_data(self.ptr(), sample as *const _) };
