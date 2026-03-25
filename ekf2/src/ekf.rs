@@ -91,10 +91,8 @@ impl Ekf {
         }
     }
 
-    /// Reset the filter by destroying and re-constructing the C++ object
-    /// in-place, then re-initializing with the given timestamp.
-    ///
-    /// This avoids heap reallocation. All filter state is wiped.
+    /// Reset the filter in-place. All filter state is wiped and
+    /// re-initialized with the given timestamp.
     pub fn reset(&mut self, timestamp_us: u64) -> Result<(), EkfError> {
         let ok = unsafe { ffi::ekf2_reset(self.ptr(), timestamp_us) };
         if ok {
