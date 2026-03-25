@@ -62,19 +62,7 @@ fn main() {
     ];
 
     let is_feature_enabled = |feat_upper: &str| -> bool {
-        if env::var(format!("CARGO_FEATURE_{}", feat_upper)).is_ok() {
-            return true;
-        }
-
-        // In PX4 EKF2, optical-flow and range-finder code paths rely on
-        // terrain estimation symbols. Mirror PX4's effective config by
-        // implicitly enabling terrain in those builds.
-        if feat_upper == "TERRAIN" {
-            return env::var("CARGO_FEATURE_RANGE_FINDER").is_ok()
-                || env::var("CARGO_FEATURE_OPTICAL_FLOW").is_ok();
-        }
-
-        false
+        env::var(format!("CARGO_FEATURE_{}", feat_upper)).is_ok()
     };
 
     let mut active_defines: Vec<(&str, &str)> = Vec::new();
