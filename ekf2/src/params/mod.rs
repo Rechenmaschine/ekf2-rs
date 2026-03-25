@@ -2,7 +2,6 @@
 
 use core::ffi::c_void;
 use core::marker::PhantomData;
-use ekf2_sys as ffi;
 
 bitflags::bitflags! {
     /// EKF solution status bitmask returned by [`Ekf::soln_status()`](crate::ekf::Ekf::soln_status).
