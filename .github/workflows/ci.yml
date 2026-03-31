@@ -106,7 +106,7 @@ jobs:
 
             cargo package -p "$pkg" --list --locked | while IFS= read -r rel; do
               case "$rel" in
-                ''|.cargo_vcs_info.json|Cargo.toml.orig)
+                ''|.cargo_vcs_info.json|Cargo.lock|Cargo.toml.orig)
                   continue
                   ;;
               esac
@@ -136,8 +136,9 @@ jobs:
           SYM_GIT=$(cpp_symbols "$GIT_SYS_TARGET")
 
           # ekf2 cannot be turned into a real .crate tarball until ekf2-sys exists in the
-          # registry, so stage a temporary workspace from the exact file sets that
-          # `cargo package --list` would ship and test that staged package tree instead.
+          # registry, so stage a temporary workspace from the exact source-backed file sets
+          # that `cargo package --list` would ship and let Cargo regenerate the workspace
+          # lockfile in that staged tree.
           mkdir -p "$PKG_WORKSPACE"
           cat > "$PKG_WORKSPACE/Cargo.toml" <<'EOF'
           [workspace]
