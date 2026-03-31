@@ -77,9 +77,9 @@ SYM_GIT=$(cpp_symbols "$GIT_SYS_TARGET")
 # temporary workspace from the exact source-backed packaged file sets instead.
 mkdir -p "$PKG_WORKSPACE"
 cp Cargo.toml "$PKG_WORKSPACE/Cargo.toml"
-cp Cargo.lock "$PKG_WORKSPACE/Cargo.lock"
 copy_packaged_files ekf2-sys ekf2-sys "$PKG_WORKSPACE/ekf2-sys"
 copy_packaged_files ekf2 ekf2 "$PKG_WORKSPACE/ekf2"
+cargo generate-lockfile --manifest-path "$PKG_WORKSPACE/Cargo.toml"
 cargo test \
   --manifest-path "$PKG_WORKSPACE/Cargo.toml" \
   --workspace \
