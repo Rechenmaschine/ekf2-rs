@@ -73,8 +73,8 @@ jobs:
           shared-key: ci-packaged
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
-      - name: Verify packaged workspace and compare ekf2-sys to git source
-        run: ./scripts/ci/verify-packaged-parity.sh
+      - name: Test packaged ekf2-sys
+        run: ./scripts/ci/test-packaged-ekf2-sys.sh
 
   build-targets:
     name: Build (${{ matrix.target }})
