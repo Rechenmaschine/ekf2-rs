@@ -28,6 +28,7 @@ links = "ekf2_cpp"
 name = "ekf2-sys"
 readme = "../README.md"
 repository.workspace = true
+rust-version.workspace = true
 version.workspace = true
 
 [features]

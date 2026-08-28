@@ -7,6 +7,7 @@ authors = ["Louis Schell"]
 edition = "2021"
 license = "BSD-3-Clause"
 repository = "https://github.com/rechenmaschine/ekf2-rs"
+rust-version = "1.77"
 version = "0.1.0"
 
 [profile.release]

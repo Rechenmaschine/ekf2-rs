@@ -103,23 +103,17 @@ impl<'a, A: Allocator> Ekf<'a, A> {
 
     /// Run one filter update cycle.
     pub fn update(&mut self) -> Result<(), EkfError> {
-        let ok = unsafe { ffi::ekf2_update(self.ptr()) };
-        if ok {
-            Ok(())
-        } else {
-            Err(EkfError::UpdateFailed)
-        }
+        unsafe { ffi::ekf2_update(self.ptr()) }
+            .then_some(())
+            .ok_or(EkfError::UpdateFailed)
     }
 
     /// Reset the filter in-place. All filter state is wiped and
     /// re-initialized with the given timestamp.
     pub fn reset(&mut self, timestamp_us: u64) -> Result<(), EkfError> {
-        let ok = unsafe { ffi::ekf2_reset(self.ptr(), timestamp_us) };
-        if ok {
-            Ok(())
-        } else {
-            Err(EkfError::InitFailed)
-        }
+        unsafe { ffi::ekf2_reset(self.ptr(), timestamp_us) }
+            .then_some(())
+            .ok_or(EkfError::InitFailed)
     }
 
     #[inline]
@@ -540,13 +534,9 @@ impl<'a, A: Allocator> Ekf<'a, A> {
         hpos_var: f32,
         vpos_var: f32,
     ) -> Result<(), EkfError> {
-        let ok =
-            unsafe { ffi::ekf2_set_global_origin(self.ptr(), lat, lon, alt, hpos_var, vpos_var) };
-        if ok {
-            Ok(())
-        } else {
-            Err(EkfError::OperationFailed)
-        }
+        unsafe { ffi::ekf2_set_global_origin(self.ptr(), lat, lon, alt, hpos_var, vpos_var) }
+            .then_some(())
+            .ok_or(EkfError::OperationFailed)
     }
 
     #[inline]
@@ -558,14 +548,9 @@ impl<'a, A: Allocator> Ekf<'a, A> {
         hpos_var: f32,
         vpos_var: f32,
     ) -> Result<(), EkfError> {
-        let ok = unsafe {
-            ffi::ekf2_reset_global_position(self.ptr(), lat, lon, alt, hpos_var, vpos_var)
-        };
-        if ok {
-            Ok(())
-        } else {
-            Err(EkfError::OperationFailed)
-        }
+        unsafe { ffi::ekf2_reset_global_position(self.ptr(), lat, lon, alt, hpos_var, vpos_var) }
+            .then_some(())
+            .ok_or(EkfError::OperationFailed)
     }
 
     #[inline]
@@ -578,7 +563,7 @@ impl<'a, A: Allocator> Ekf<'a, A> {
         epv: f32,
         timestamp_observation: u64,
     ) -> Result<(), EkfError> {
-        let ok = unsafe {
+        unsafe {
             ffi::ekf2_reset_global_position_to_external_observation(
                 self.ptr(),
                 lat,
@@ -588,12 +573,9 @@ impl<'a, A: Allocator> Ekf<'a, A> {
                 epv,
                 timestamp_observation,
             )
-        };
-        if ok {
-            Ok(())
-        } else {
-            Err(EkfError::OperationFailed)
         }
+        .then_some(())
+        .ok_or(EkfError::OperationFailed)
     }
 
     #[inline]
@@ -776,7 +758,7 @@ impl<'a, A: Allocator> Ekf<'a, A> {
             .min(innov_ve.len())
             .min(weight.len());
         let mut count = 0usize;
-        let ok = unsafe {
+        unsafe {
             ffi::ekf2_get_ekfgsf_data(
                 self.ptr_const(),
                 yaw_composite,
@@ -788,12 +770,8 @@ impl<'a, A: Allocator> Ekf<'a, A> {
                 capacity,
                 &mut count,
             )
-        };
-        if ok {
-            Some(count)
-        } else {
-            None
         }
+        .then_some(count)
     }
 
     #[cfg(any(
