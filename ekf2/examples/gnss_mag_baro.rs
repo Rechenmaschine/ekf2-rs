@@ -10,10 +10,18 @@ Run with: cargo run -p ekf2 --example gnss_mag_baro --features 'gnss,magnetomete
 fn main() -> Result<(), ekf2::EkfError> {
     use ekf2::{
         types::{BaroSample, GnssSample, ImuSample, MagSample},
-        Ekf, EkfError,
+        Ekf, EkfError, HeightReference,
     };
 
     let mut ekf = Ekf::new(0)?;
+    {
+        let mut params = ekf.params_mut();
+        params.set_hgt_ref(HeightReference::Baro);
+        params.set_gps_pos_noise(0.5);
+        params.set_gps_vel_noise(0.8);
+        params.set_mag_noise(0.04);
+    }
+
     let dt_s = 0.01_f32;
     let mut update_failed = 0_u32;
 
