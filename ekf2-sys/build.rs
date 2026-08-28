@@ -19,7 +19,7 @@ fn main() {
     // include roots:
     //   px4_src_dir → resolves <lib/ringbuffer/TimestampedRingBuffer.hpp>
     //   lib_dir     → resolves <mathlib/math/Utilities.hpp>
-    // The wrapper dir provides two include-path shims required by PX4 vendor headers:
+    // The wrapper dir provides the allocator API and include-path shims required by PX4 vendor headers:
     //   px4_platform_common/ — minimal platform-compat stubs (no PX4 OS dependency)
     //   uORB/topics/         — plain C struct definitions; NOT the uORB pub/sub system.
     //                          PX4's ekf.h hardcodes #include <uORB/topics/estimator_aid_sourceXd.h>
@@ -27,16 +27,16 @@ fn main() {
     let wrapper_dir = manifest_dir.join("wrapper");
 
     // ── Vendor presence check ───────────────────────────────────────────
-    // Check for a specific PX4 header rather than just the directory, since
-    // the directory is created as a placeholder (.gitkeep) in the repository.
+    // Check for a specific PX4 header rather than just the directory.
     let ekf_header = ekf_dir.join("ekf.h");
     if !ekf_header.exists() {
         panic!(
             "\n\n[ekf2-sys] PX4 vendor sources not found.\n\
              Expected: {}\n\n\
-             If you are building from a git checkout, run `git submodule update --init --recursive`.\n\
-             If you are building from a published crate, the package contents are incomplete and should be reported as a packaging bug.\n\
-             This project stores the PX4 source subset at ekf2-sys/vendor/PX4-Autopilot.\n",
+             The minimal PX4 source snapshot should be present at\n\
+             ekf2-sys/vendor/PX4-Autopilot.\n\
+             If you are building from a published crate, the package contents\n\
+             are incomplete and should be reported as a packaging bug.\n",
             ekf_header.display()
         );
     }
@@ -98,14 +98,11 @@ fn main() {
         .flag_if_supported("-Wno-missing-field-initializers")
         .flag_if_supported("-Wno-deprecated-declarations")
         .flag_if_supported("-Wno-strict-aliasing")
-        .flag_if_supported("-Wno-new-returns-null")
         // Needed for correct float behaviour
         .flag_if_supported("-fno-associative-math")
         // Keep C++ strictly non-throwing across the FFI boundary.
         .flag_if_supported("-fno-exceptions")
-        .flag_if_supported("-fno-rtti")
-        // Ensure caller code checks null returns from replacement operator new.
-        .flag_if_supported("-fcheck-new");
+        .flag_if_supported("-fno-rtti");
 
     // Without MODULE_NAME: ECL_INFO/WARN/ERR fall through to printf/fprintf —
     // the client provides the implementation (e.g. via c-stubs on bare-metal).
@@ -262,7 +259,6 @@ fn main() {
 
     // Wrapper
     build.file(wrapper_dir.join("ekf2_wrapper.cpp"));
-    build.file(wrapper_dir.join("allocator.cpp"));
 
     build.compile("ekf2_cpp");
 
@@ -307,7 +303,7 @@ fn main() {
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
         .expect(
-            "bindgen failed to generate bindings — check submodule sources in vendor/PX4-Autopilot",
+            "bindgen failed to generate bindings — check vendor sources in vendor/PX4-Autopilot",
         );
 
     bindings

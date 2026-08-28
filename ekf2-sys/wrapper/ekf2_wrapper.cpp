@@ -9,16 +9,13 @@
  */
 
 #include "ekf2_wrapper.h"
+#include "ekf2_memory.hpp"
 #include <new>
 #include <cstring>   // memcpy
 
 // PX4 EKF headers (from vendor/)
 #include <EKF/ekf.h>
 
-// PX4's ekf.h hardcodes these includes, so wrapper/uORB/topics/ provides
-// minimal plain-C struct definitions (estimator_aid_sourceXd_s) required to
-// compile. These have nothing to do with the uORB pub/sub system — they are
-// purely struct definitions that satisfy PX4's internal include paths.
 #include <uORB/topics/estimator_aid_source1d.h>
 #include <uORB/topics/estimator_aid_source2d.h>
 #include <uORB/topics/estimator_aid_source3d.h>
@@ -27,6 +24,37 @@
 
 static inline Ekf* as_ekf(void* p)       { return static_cast<Ekf*>(p); }
 static inline const Ekf* as_ekf(const void* p) { return static_cast<const Ekf*>(p); }
+
+extern "C" {
+    uint8_t* ekf2_rust_alloc(size_t size, size_t align);
+    uint8_t* ekf2_rust_alloc_zeroed(size_t size, size_t align);
+    void ekf2_rust_dealloc(uint8_t* ptr, size_t size, size_t align);
+}
+
+static void* default_allocate(void*, size_t size, size_t align)
+{
+    return ekf2_rust_alloc(size, align);
+}
+
+static void* default_allocate_zeroed(void*, size_t size, size_t align)
+{
+    return ekf2_rust_alloc_zeroed(size, align);
+}
+
+static void default_deallocate(void*, void* ptr, size_t size, size_t align)
+{
+    ekf2_rust_dealloc(static_cast<uint8_t *>(ptr), size, align);
+}
+
+static EkfAllocator default_allocator()
+{
+    return EkfAllocator{
+        nullptr,
+        default_allocate,
+        default_allocate_zeroed,
+        default_deallocate,
+    };
+}
 
 #if defined(CONFIG_EKF2_OPTICAL_FLOW) || defined(CONFIG_EKF2_WIND)
 static inline void copy_vec2_to_array(const Vector2f &v, float out[2])
@@ -154,7 +182,13 @@ extern "C" size_t ekf2_alignof()
 
 extern "C" void* ekf2_create_heap()
 {
-    return new (std::nothrow) Ekf();
+    return ekf2_create_heap_with_allocator(default_allocator());
+}
+
+extern "C" void* ekf2_create_heap_with_allocator(EkfAllocator allocator)
+{
+    EkfMemory memory(allocator);
+    return memory.valid() ? memory.create<Ekf>(allocator) : nullptr;
 }
 
 extern "C" void ekf2_destroy_heap(void* self)
@@ -162,15 +196,28 @@ extern "C" void ekf2_destroy_heap(void* self)
     if (!self) {
         return;
     }
-    delete as_ekf(self);
+
+    const EkfAllocator allocator = as_ekf(self)->allocator();
+    EkfMemory memory(allocator);
+    memory.destroy(as_ekf(self));
 }
 
 extern "C" void* ekf2_create(void* ekf_buf, size_t ekf_buf_size)
 {
+    return ekf2_create_with_allocator(ekf_buf, ekf_buf_size, default_allocator());
+}
+
+extern "C" void* ekf2_create_with_allocator(void* ekf_buf, size_t ekf_buf_size,
+                                               EkfAllocator allocator)
+{
     if (ekf_buf_size < sizeof(Ekf)) {
         return nullptr;
     }
-    return ::new (ekf_buf) Ekf();
+    return allocator.allocate != nullptr
+           && allocator.allocate_zeroed != nullptr
+           && allocator.deallocate != nullptr
+        ? ::new (ekf_buf) Ekf(allocator)
+        : nullptr;
 }
 
 extern "C" bool ekf2_init(void* self, uint64_t timestamp_us)
@@ -190,8 +237,9 @@ extern "C" void ekf2_destroy(void* self)
 
 extern "C" bool ekf2_reset(void* self, uint64_t timestamp_us)
 {
+    const EkfAllocator allocator = as_ekf(self)->allocator();
     as_ekf(self)->~Ekf();
-    ::new (self) Ekf();
+    ::new (self) Ekf(allocator);
     return as_ekf(self)->init(timestamp_us);
 }
 

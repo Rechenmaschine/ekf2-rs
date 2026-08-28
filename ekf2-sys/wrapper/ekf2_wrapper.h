@@ -8,13 +8,14 @@
  * Lifetime contract
  * -----------------
  *   A) Heap-owned path (used by `ekf2` safe wrapper):
- *      1. ekf2_create_heap()            — allocates + constructs Ekf
+ *      1. ekf2_create_heap[_with_allocator]() — allocates + constructs Ekf
  *      2. ekf2_init(ekf_ptr, timestamp) — calls Ekf::init()
  *      3. ... normal operation ...
  *      4. ekf2_destroy_heap(ekf_ptr)    — calls ~Ekf() + frees object memory
  *
  *   B) Caller-buffer path (for low-level/manual integration):
- *      1. ekf2_create(buf, sizeof_buf)  — placement-new Ekf into caller buffer
+ *      1. ekf2_create[_with_allocator](buf, sizeof_buf)
+ *                                           — placement-new Ekf into caller buffer
  *      2. ekf2_init(ekf_ptr, timestamp) — calls Ekf::init()
  *      3. ... normal operation ...
  *      4. ekf2_destroy(ekf_ptr)         — calls ~Ekf() in-place (no free)
@@ -29,6 +30,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
+
+#include "ekf2_allocator.h"
 
 /* =========================================================================
  * Aid source diagnostic structs
@@ -257,16 +260,22 @@ size_t ekf2_sizeof(void);
 size_t ekf2_alignof(void);
 
 /**
- * Allocate and construct an Ekf object on the C++ heap.
- * Allocation follows the active C++ operator new path (bridged to Rust
- * allocator symbols by allocator.cpp in this project).
+ * Allocate and construct an Ekf object on the C++ heap using the default
+ * resource, which is backed by the Rust global allocator.
  *
  * @return Pointer to a constructed object, or NULL on allocation failure.
  */
 void* ekf2_create_heap(void);
 
 /**
- * Destruct and free an Ekf object created by ekf2_create_heap().
+ * Allocate and construct an Ekf using the supplied per-instance resource.
+ * The resource is copied into the C++ object and used by all of its owned
+ * dynamic storage, including buffers created lazily during operation.
+ */
+void* ekf2_create_heap_with_allocator(EkfAllocator allocator);
+
+/**
+ * Destruct and free an Ekf object created by either heap-creation function.
  */
 void ekf2_destroy_heap(void* self);
 
@@ -274,16 +283,23 @@ void ekf2_destroy_heap(void* self);
  * Placement-new an Ekf object into the caller-supplied buffer.
  *
  * @param ekf_buf       Buffer of at least ekf2_sizeof() bytes.
- * @param ekf_buf_size  Size of ekf_buf (checked at runtime in debug builds).
+ * @param ekf_buf_size  Size of ekf_buf (checked at runtime).
  * @return              Pointer to the constructed object (== ekf_buf), or
  *                      NULL if ekf_buf_size is too small.
  */
 void* ekf2_create(void* ekf_buf, size_t ekf_buf_size);
 
 /**
- * Initialise the filter.  Must be called with the pool active.
+ * Placement-new an Ekf into caller storage using the supplied resource.
+ * Internal dynamic storage uses the same resource.
+ */
+void* ekf2_create_with_allocator(void* ekf_buf, size_t ekf_buf_size,
+                                 EkfAllocator allocator);
+
+/**
+ * Initialise a constructed filter before calling ekf2_update().
  *
- * @param self          Pointer from ekf2_create_heap() or ekf2_create().
+ * @param self          Pointer from any create function.
  * @param timestamp_us  Current system time [µs].
  * @return              true on success.
  */

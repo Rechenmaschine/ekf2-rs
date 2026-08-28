@@ -35,20 +35,20 @@
 //!
 //! # Memory model
 //!
-//! [`Ekf::new`] allocates the C++ object through `ekf2-sys` and calls
-//! `Ekf::init()`. C++ allocations are routed through Rust allocator symbols
-//! via the `operator new`/`delete` bridge in `allocator.cpp`. On bare-metal
-//! targets the global allocator must be configured (e.g. via `embedded-alloc`).
+//! [`Ekf::new`] creates the heap-owned C++ object using Rust's global
+//! allocator. [`Ekf::new_in`] accepts any `allocator-api2` allocator. The
+//! selected allocator is passed to C++ as per-instance callbacks and is used
+//! for the object and all of its owned dynamic storage.
 //!
 //! # no_std
 //!
-//! This crate is `no_std` compatible but requires the `alloc` crate.
+//! This crate does not depend on `std`. [`Ekf::new`] uses the target's global
+//! allocator, while [`Ekf::new_in`] accepts a custom allocator.
 
 #![no_std]
 #![deny(unsafe_op_in_unsafe_fn)]
 
-extern crate alloc;
-
+mod allocator;
 pub mod ekf;
 pub mod error;
 pub mod params;
@@ -63,7 +63,6 @@ pub use params::{
     OpticalFlowControl, PositionReference, RangeControl, SolnStatus,
 };
 
-// Output types returned by EKF methods — re-exported so users don't need to depend on ekf2-sys.
 pub use ekf2_sys::EkfBiasEstimatorStatus as BiasEstimatorStatus;
 pub use ekf2_sys::{
     EkfAidSource1d as AidSource1d, EkfAidSource2d as AidSource2d, EkfAidSource3d as AidSource3d,

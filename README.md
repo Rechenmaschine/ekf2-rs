@@ -2,12 +2,14 @@
 
 Rust `#![no_std]` bindings for the PX4 EKF2 state-estimation algorithm.
 
-This workspace has two crates:
+This workspace consists of two crates:
 
 - `ekf2-sys`: raw `unsafe` FFI bindings to vendored PX4 EKF2 C++
 - `ekf2`: safe Rust wrapper API
 
-This crate requires `alloc` due to the design of the underlying C++ code.
+Note that `ekf2` requires an allocator. Any allocator implementing the
+[`allocator_api2::alloc::Allocator`](https://docs.rs/allocator-api2/latest/allocator_api2/alloc/trait.Allocator.html)
+trait may be used. By default, `Ekf::new()` uses Rust's global allocator.
 
 ## Minimal usage
 
@@ -33,11 +35,11 @@ fn main() -> Result<(), EkfError> {
 
 ## Supported Features
 
-`ekf2-rs` in the long term aims to provide full coverage of the PX4 EKF2 algorithm.
+The long-term goal is to expose the full PX4 EKF2 algorithm through Rust.
 
-Current coverage includes:
+Currently supported functionality includes:
 
-- Runtime + inputs: standalone `no_std + alloc` EKF instance with `new()`/`update()`, IMU always-on, and feature-gated
+- Runtime + inputs: standalone `no_std` heap-owned EKF instance with `new()`/`new_in()`/`update()`, IMU always-on, and feature-gated
   sensor feeds (GNSS, mag, baro, airspeed, range, flow, EV, aux-vel).
 - Outputs + diagnostics: attitude/position/velocity, biases/variances, innovation and aid-source diagnostics,
   validity/solution/fault/control status.
@@ -71,6 +73,10 @@ exposes related API in Rust.
 
 Note: `range-finder` and `optical-flow` implicitly enable `CONFIG_EKF2_TERRAIN` in `ekf2-sys/build.rs`.
 
+The `logging` feature enables PX4 diagnostic messages through the target's
+`printf`/`fprintf` symbols. The `c-stubs` feature provides no-op C runtime
+symbols for bare-metal targets that do not provide them.
+
 ## Verified targets
 
 The crate is verified in CI to compile for the following targets:
@@ -80,6 +86,13 @@ The crate is verified in CI to compile for the following targets:
 - `thumbv6m-none-eabi`
 
 Further targets should also work, but are untested.
+
+## Memory Management
+
+The EKF2 C++ code has been modified to route all EKF-owned dynamic allocations
+through allocator callbacks provided by Rust. `Ekf::new()` uses the global
+allocator, while `Ekf::new_in()` accepts any
+[`allocator_api2::alloc::Allocator`](https://docs.rs/allocator-api2/latest/allocator_api2/alloc/trait.Allocator.html).
 
 ## License
 
