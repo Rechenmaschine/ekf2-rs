@@ -36,9 +36,9 @@
 //! # Memory model
 //!
 //! [`Ekf::new`] allocates the C++ object through `ekf2-sys` and calls
-//! `Ekf::init()`. C++ allocations are routed through Rust allocator symbols
-//! via the `operator new`/`delete` bridge in `allocator.cpp`. On bare-metal
-//! targets the global allocator must be configured (e.g. via `embedded-alloc`).
+//! `Ekf::init()` using Rust's global allocator. [`Ekf::new_in`] accepts any
+//! `allocator-api2` allocator; the C++ object stores callbacks for that
+//! allocator and uses them for all of its owned dynamic storage.
 //!
 //! # no_std
 //!
@@ -49,6 +49,7 @@
 
 extern crate alloc;
 
+mod allocator;
 pub mod ekf;
 pub mod error;
 pub mod params;

@@ -1,5 +1,6 @@
 //! Heap-allocated PX4 EKF2 filter handle.
 
+use allocator_api2::alloc::{Allocator, Global};
 use core::marker::PhantomData;
 use core::ptr::NonNull;
 use ekf2_sys as ffi;
@@ -13,9 +14,11 @@ use crate::types::ImuSample;
 /// The C++ `Ekf` object is allocated and owned by `ekf2-sys` on the C++
 /// heap. `Drop` calls the C++ destructor and frees object memory.
 ///
-/// C++ allocations are routed through Rust's allocator symbols via the
-/// `operator new`/`delete` bridge in `allocator.cpp`. On bare-metal targets
-/// you must configure a global allocator (e.g. via `embedded-alloc`).
+/// The default constructor uses Rust's [`Global`] allocator. [`Self::new_in`]
+/// can instead bind the instance to any `allocator-api2` allocator. The
+/// allocator is borrowed for the lifetime of this handle, while C++ stores an
+/// erased callback table and uses it for every owned allocation, including
+/// buffers allocated lazily during operation.
 ///
 /// # Example
 ///
@@ -27,23 +30,29 @@ use crate::types::ImuSample;
 /// ekf.set_imu_data(&imu);
 /// let _ = ekf.update();
 /// ```
-pub struct Ekf {
+pub struct Ekf<'a, A: Allocator = Global> {
     ptr: NonNull<core::ffi::c_void>,
+    // The C++ resource context points at the borrowed allocator. Keeping the
+    // lifetime in the Rust type prevents that allocator from being moved or
+    // dropped while C++ may call the callbacks.
+    _allocator: PhantomData<&'a A>,
     _not_send_sync: PhantomData<*mut ()>,
 }
 
-impl Drop for Ekf {
+impl<'a, A: Allocator> Drop for Ekf<'a, A> {
     fn drop(&mut self) {
         unsafe { ffi::ekf2_destroy_heap(self.ptr.as_ptr()) };
     }
 }
 
-impl Ekf {
-    /// Create and initialize a new EKF2 filter instance.
+impl<'a, A: Allocator> Ekf<'a, A> {
+    /// Create and initialize a new EKF2 filter instance in `allocator`.
     ///
-    /// Allocates the C++ object and calls `Ekf::init(timestamp_us)`.
-    pub fn new(timestamp_us: u64) -> Result<Self, EkfError> {
-        let ptr = unsafe { ffi::ekf2_create_heap() };
+    /// The allocator remains borrowed for as long as the returned handle is
+    /// alive. All C++ allocations owned by this EKF use this resource.
+    pub fn new_in(allocator: &'a A, timestamp_us: u64) -> Result<Self, EkfError> {
+        let raw_allocator = crate::allocator::raw(allocator);
+        let ptr = unsafe { ffi::ekf2_create_heap_with_allocator(raw_allocator) };
         if ptr.is_null() {
             return Err(EkfError::AllocFailed);
         }
@@ -57,6 +66,7 @@ impl Ekf {
 
         Ok(Self {
             ptr: NonNull::new(ptr).unwrap(),
+            _allocator: PhantomData,
             _not_send_sync: PhantomData,
         })
     }
@@ -1268,5 +1278,12 @@ impl Ekf {
     #[inline]
     pub fn set_min_required_gps_health_time(&mut self, time_us: u32) {
         unsafe { ffi::ekf2_set_min_required_gps_health_time(self.ptr(), time_us) };
+    }
+}
+
+impl Ekf<'static, Global> {
+    /// Create and initialize a new EKF2 filter using Rust's global allocator.
+    pub fn new(timestamp_us: u64) -> Result<Self, EkfError> {
+        Self::new_in(&crate::allocator::GLOBAL_ALLOCATOR, timestamp_us)
     }
 }

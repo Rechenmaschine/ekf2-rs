@@ -1,3 +1,0 @@
-[submodule "ekf2-sys/vendor/PX4-Autopilot"]
-	path = ekf2-sys/vendor/PX4-Autopilot
-	url = https://github.com/PX4/PX4-Autopilot.git
