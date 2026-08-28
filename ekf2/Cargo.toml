@@ -9,6 +9,7 @@ license.workspace = true
 name = "ekf2"
 readme = "../README.md"
 repository.workspace = true
+rust-version.workspace = true
 version.workspace = true
 
 [features]
