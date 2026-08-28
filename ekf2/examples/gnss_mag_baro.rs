@@ -45,7 +45,19 @@ fn main() -> Result<(), ekf2::EkfError> {
             lat += 0.00000002;
             lon += 0.00000005;
             alt += 0.001;
-            let gps = GnssSample::new(ts_us, lat, lon, alt, [2.0, 0.1, 0.0], 0.5, 0.8, 0.15, 3, 16);
+            let gps = GnssSample::new(
+                ts_us,
+                lat,
+                lon,
+                alt,
+                [2.0, 0.1, 0.0],
+                0.5,
+                0.8,
+                0.15,
+                1.0,
+                3,
+                16,
+            );
             ekf.set_gps_data(&gps);
         }
 

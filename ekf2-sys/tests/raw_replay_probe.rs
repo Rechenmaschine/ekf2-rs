@@ -141,7 +141,8 @@ fn run_raw_replay_probe(expectations: &ReplayProbeExpectations) {
                     parse_f32(&parts, 6),
                     parse_f32(&parts, 7),
                 ];
-                let gps = EkfGnssSample::new(ts, lat, lon, alt_m, vel_ned, 0.5, 0.8, 0.2, 3, 16);
+                let gps =
+                    EkfGnssSample::new(ts, lat, lon, alt_m, vel_ned, 0.5, 0.8, 0.2, 1.0, 3, 16);
                 unsafe {
                     ekf2_sys::ekf2_set_gps_data(ptr, &gps);
                 }

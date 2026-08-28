@@ -74,6 +74,7 @@ fn high_contention_sensor_churn_is_stable() {
                         0.6,
                         0.9,
                         0.3,
+                        1.0,
                         3,
                         14,
                     ));

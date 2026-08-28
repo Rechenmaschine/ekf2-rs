@@ -180,7 +180,7 @@ fn replay_fixture_into_ekf(expectations: &ReplayExpectations) -> ReplayOutcome {
                     parse_f32(&parts, 7),
                 ];
 
-                let gps = GnssSample::new(ts, lat, lon, alt_m, vel_ned, 0.5, 0.8, 0.2, 3, 16);
+                let gps = GnssSample::new(ts, lat, lon, alt_m, vel_ned, 0.5, 0.8, 0.2, 1.0, 3, 16);
                 ekf.set_gps_data(&gps);
             }
             _ => {}

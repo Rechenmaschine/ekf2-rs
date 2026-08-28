@@ -76,6 +76,7 @@ fn run_sensor_cycle(ts_base: u64, steps: u64) {
                 0.5,
                 0.8,
                 0.2,
+                1.0,
                 3,
                 16,
             ));

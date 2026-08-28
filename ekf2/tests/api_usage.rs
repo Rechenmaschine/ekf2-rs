@@ -1,5 +1,15 @@
 use ekf2::{types::ImuSample, Ekf, EkfError};
 
+#[cfg(feature = "gnss")]
+#[test]
+fn gnss_constructor_preserves_pdop() {
+    let sample = ekf2::types::GnssSample::new(
+        0, 47.397742, 8.545594, 488.0, [0.0; 3], 0.5, 0.8, 0.2, 1.5, 3, 16,
+    );
+
+    assert_eq!(sample.pdop, 1.5);
+}
+
 fn imu_sample(timestamp_us: u64) -> ImuSample {
     ImuSample::new(
         timestamp_us,
