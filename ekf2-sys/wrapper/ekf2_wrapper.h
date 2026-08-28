@@ -275,7 +275,7 @@ void* ekf2_create_heap(void);
 void* ekf2_create_heap_with_allocator(EkfAllocator allocator);
 
 /**
- * Destruct and free an Ekf object created by ekf2_create_heap().
+ * Destruct and free an Ekf object created by either heap-creation function.
  */
 void ekf2_destroy_heap(void* self);
 
@@ -283,20 +283,23 @@ void ekf2_destroy_heap(void* self);
  * Placement-new an Ekf object into the caller-supplied buffer.
  *
  * @param ekf_buf       Buffer of at least ekf2_sizeof() bytes.
- * @param ekf_buf_size  Size of ekf_buf (checked at runtime in debug builds).
+ * @param ekf_buf_size  Size of ekf_buf (checked at runtime).
  * @return              Pointer to the constructed object (== ekf_buf), or
  *                      NULL if ekf_buf_size is too small.
  */
 void* ekf2_create(void* ekf_buf, size_t ekf_buf_size);
 
-/** Placement-new an Ekf into caller storage using the supplied resource. */
+/**
+ * Placement-new an Ekf into caller storage using the supplied resource.
+ * Internal dynamic storage uses the same resource.
+ */
 void* ekf2_create_with_allocator(void* ekf_buf, size_t ekf_buf_size,
                                  EkfAllocator allocator);
 
 /**
- * Initialise the filter.  Must be called with the pool active.
+ * Initialise a constructed filter before calling ekf2_update().
  *
- * @param self          Pointer from ekf2_create_heap() or ekf2_create().
+ * @param self          Pointer from any create function.
  * @param timestamp_us  Current system time [µs].
  * @return              true on success.
  */

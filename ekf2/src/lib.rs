@@ -35,10 +35,10 @@
 //!
 //! # Memory model
 //!
-//! [`Ekf::new`] allocates the C++ object through `ekf2-sys` and calls
-//! `Ekf::init()` using Rust's global allocator. [`Ekf::new_in`] accepts any
-//! `allocator-api2` allocator; the C++ object stores callbacks for that
-//! allocator and uses them for all of its owned dynamic storage.
+//! [`Ekf::new`] creates the heap-owned C++ object using Rust's global
+//! allocator. [`Ekf::new_in`] accepts any `allocator-api2` allocator. The
+//! selected allocator is passed to C++ as per-instance callbacks and is used
+//! for the object and all of its owned dynamic storage.
 //!
 //! # no_std
 //!

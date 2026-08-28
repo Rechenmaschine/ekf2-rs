@@ -5,8 +5,9 @@
 //!
 //! # Feature flags
 //!
-//! Each sensor type is guarded by a Cargo feature that maps 1-to-1 to the
-//! corresponding `CONFIG_EKF2_*` C preprocessor define:
+//! Each sensor type and integration option is guarded by a Cargo feature. The
+//! sensor features map 1-to-1 to the corresponding `CONFIG_EKF2_*` C
+//! preprocessor define:
 //!
 //! | Feature            | Default | C define                    |
 //! |--------------------|:-------:|-----------------------------|
@@ -25,6 +26,18 @@
 //! | `terrain`          | no      | `CONFIG_EKF2_TERRAIN`       |
 //! | `gravity-fusion`   | no      | `CONFIG_EKF2_GRAVITY_FUSION`|
 //! | `sideslip`         | no      | `CONFIG_EKF2_SIDESLIP`      |
+//! | `logging`          | no      | -                           |
+//! | `c-stubs`          | no      | -                           |
+//!
+//! # Memory
+//!
+//! `ekf2_create_heap` uses the Rust global allocator through the exported
+//! `ekf2_rust_alloc` callbacks. `ekf2_create_heap_with_allocator` accepts an
+//! explicit callback table instead. C++ stores that table in the EKF object
+//! and uses it for all dynamic storage owned by the object.
+//!
+//! The `ekf2_create` variants place the EKF object in caller-provided storage;
+//! its internal dynamic storage still uses the selected callback table.
 
 #![no_std]
 #![allow(non_upper_case_globals)]
