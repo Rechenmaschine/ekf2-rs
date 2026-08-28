@@ -13,7 +13,7 @@ fn main() -> Result<(), ekf2::EkfError> {
         Ekf, EkfError, HeightReference,
     };
 
-    let mut ekf = Ekf::new(0)?;
+    let mut ekf = Ekf::new()?;
     {
         let mut params = ekf.params_mut();
         params.set_hgt_ref(HeightReference::Baro);

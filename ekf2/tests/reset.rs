@@ -7,13 +7,13 @@ use common::{feed_imu, quat_norm};
 
 #[test]
 fn reset_succeeds_on_fresh_instance() {
-    let mut ekf = Ekf::new(0).expect("init should succeed");
+    let mut ekf = Ekf::new().expect("init should succeed");
     ekf.reset(1_000_000).expect("reset should succeed");
 }
 
 #[test]
 fn reset_succeeds_after_imu_updates() {
-    let mut ekf = Ekf::new(0).expect("init should succeed");
+    let mut ekf = Ekf::new().expect("init should succeed");
     let _ = feed_imu(&mut ekf, 100_000, 200, 0.0001);
     ekf.reset(5_000_000)
         .expect("reset after updates should succeed");
@@ -23,7 +23,7 @@ fn reset_succeeds_after_imu_updates() {
 
 #[test]
 fn reset_wipes_filter_state() {
-    let mut ekf = Ekf::new(0).expect("init should succeed");
+    let mut ekf = Ekf::new().expect("init should succeed");
 
     // Drive the filter so it accumulates non-trivial state.
     let _ = feed_imu(&mut ekf, 100_000, 400, 0.001);
@@ -35,7 +35,7 @@ fn reset_wipes_filter_state() {
 
     // After reset the quaternion should be back to identity-ish initial state,
     // distinct from the rotated state we had before.
-    let fresh = Ekf::new(10_000_000).expect("fresh init");
+    let fresh = Ekf::new().expect("fresh init");
     let q_fresh = fresh.quaternion();
 
     // q_after should be close to q_fresh (both freshly initialized).
@@ -65,7 +65,7 @@ fn reset_wipes_filter_state() {
 
 #[test]
 fn filter_is_usable_after_reset() {
-    let mut ekf = Ekf::new(0).expect("init should succeed");
+    let mut ekf = Ekf::new().expect("init should succeed");
     let _ = feed_imu(&mut ekf, 100_000, 100, 0.0001);
 
     ekf.reset(5_000_000).expect("reset should succeed");
@@ -88,7 +88,7 @@ fn filter_is_usable_after_reset() {
 
 #[test]
 fn repeated_resets_remain_stable() {
-    let mut ekf = Ekf::new(0).expect("init should succeed");
+    let mut ekf = Ekf::new().expect("init should succeed");
 
     for cycle in 0..50_u64 {
         let base_ts = cycle * 2_000_000;
@@ -109,7 +109,7 @@ fn repeated_resets_remain_stable() {
 
 #[test]
 fn params_are_default_after_reset() {
-    let mut ekf = Ekf::new(0).expect("init should succeed");
+    let mut ekf = Ekf::new().expect("init should succeed");
 
     // Change a param from default.
     let default_gyro_noise = ekf.params().gyro_noise();

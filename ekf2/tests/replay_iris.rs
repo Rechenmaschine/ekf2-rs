@@ -73,7 +73,7 @@ struct ReplayExpectations {
 }
 
 fn replay_fixture_into_ekf(expectations: &ReplayExpectations) -> ReplayOutcome {
-    let mut ekf = Ekf::new(0).expect("init should succeed");
+    let mut ekf = Ekf::new().expect("init should succeed");
 
     if expectations.gps_vel_gate_override.is_some() || expectations.gps_pos_gate_override.is_some()
     {

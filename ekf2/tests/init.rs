@@ -4,7 +4,7 @@ use ekf2::{types::ImuSample, Ekf, EkfError};
 fn new_accepts_varied_timestamps_and_runs_first_update() {
     let timestamps = [0_u64, 1, 10_000, 1_000_000, 50_000_000];
     for &t0 in &timestamps {
-        let mut ekf = Ekf::new(t0).expect("EKF init should succeed");
+        let mut ekf = Ekf::new().expect("EKF init should succeed");
         let imu = ImuSample::new(
             t0.saturating_add(10_000),
             [0.0, 0.0, 0.0001],

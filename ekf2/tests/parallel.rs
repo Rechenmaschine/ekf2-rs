@@ -25,7 +25,7 @@ fn high_contention_sensor_churn_is_stable() {
     for thread_idx in 0..THREADS {
         let start = Arc::clone(&start);
         handles.push(thread::spawn(move || {
-            let mut ekf = Ekf::new(0).expect("thread-local EKF init should succeed");
+            let mut ekf = Ekf::new().expect("thread-local EKF init should succeed");
             let mut update_failed = 0_u32;
             let mut reset_count_regressions = 0_u32;
             let mut prev_counts = (
@@ -139,7 +139,7 @@ fn identical_inputs_produce_equivalent_snapshots() {
     for _ in 0..THREADS {
         let start = Arc::clone(&start);
         handles.push(thread::spawn(move || {
-            let mut ekf = Ekf::new(0).expect("thread-local EKF init should succeed");
+            let mut ekf = Ekf::new().expect("thread-local EKF init should succeed");
             let mut update_failed = 0_u32;
 
             start.wait();

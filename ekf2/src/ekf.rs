@@ -9,27 +9,45 @@ use crate::error::EkfError;
 use crate::params::{Params, ParamsMut};
 use crate::types::ImuSample;
 
-/// An initialized PX4 EKF2 filter instance.
+/// A heap-allocated PX4 EKF2 filter instance.
 ///
 /// The C++ `Ekf` object is allocated and owned by `ekf2-sys` on the C++
 /// heap. `Drop` calls the C++ destructor and frees object memory.
 ///
-/// The default constructor uses Rust's [`Global`] allocator. [`Self::new_in`]
-/// can instead bind the instance to any `allocator-api2` allocator. The
-/// allocator is borrowed for the lifetime of this handle, while C++ stores an
-/// erased callback table and uses it for every owned allocation, including
-/// buffers allocated lazily during operation.
+/// [`Self::new`] uses Rust's [`Global`] allocator and applies [`EkfConfig::default`].
+/// [`Self::with_config`] selects the initial timing configuration explicitly.
+/// The `_in` variants can instead bind the instance to any `allocator-api2`
+/// allocator. The allocator is borrowed for the lifetime of this handle, while
+/// C++ stores an erased callback table and uses it for every owned allocation,
+/// including buffers allocated lazily during operation.
 ///
 /// # Example
 ///
 /// ```no_run
 /// use ekf2::{Ekf, types::ImuSample};
 ///
-/// let mut ekf = Ekf::new(0).expect("EKF init failed");
+/// let mut ekf = Ekf::new().expect("EKF allocation failed");
 /// let imu = ImuSample::new(10_000, [0.0; 3], [0.0, 0.0, -9.81 * 0.01], 0.01, 0.01);
 /// ekf.set_imu_data(&imu);
 /// let _ = ekf.update();
 /// ```
+#[derive(Debug, Clone, Copy)]
+pub struct EkfConfig {
+    /// EKF prediction/update interval in microseconds.
+    pub predict_interval_us: i32,
+    /// Maximum aiding-sensor delay in milliseconds.
+    pub delay_max_ms: f32,
+}
+
+impl Default for EkfConfig {
+    fn default() -> Self {
+        Self {
+            predict_interval_us: 10_000,
+            delay_max_ms: 110.0,
+        }
+    }
+}
+
 pub struct Ekf<'a, A: Allocator = Global> {
     ptr: NonNull<core::ffi::c_void>,
     _allocator: PhantomData<&'a A>,
@@ -37,9 +55,18 @@ pub struct Ekf<'a, A: Allocator = Global> {
 }
 
 impl Ekf<'static, Global> {
-    /// Create and initialize a new EKF2 filter using Rust's global allocator.
-    pub fn new(timestamp_us: u64) -> Result<Self, EkfError> {
-        Self::new_in(&Global, timestamp_us)
+    /// Create a new EKF2 filter using Rust's global allocator and default configuration.
+    ///
+    /// The first IMU sample establishes the filter's initial timestamp.
+    pub fn new() -> Result<Self, EkfError> {
+        Self::new_in(&Global)
+    }
+
+    /// Create a new EKF2 filter using Rust's global allocator and `config`.
+    ///
+    /// The first IMU sample establishes the filter's initial timestamp.
+    pub fn with_config(config: EkfConfig) -> Result<Self, EkfError> {
+        Self::with_config_in(config, &Global)
     }
 }
 
@@ -50,29 +77,38 @@ impl<'a, A: Allocator> Drop for Ekf<'a, A> {
 }
 
 impl<'a, A: Allocator> Ekf<'a, A> {
-    /// Create and initialize a new EKF2 filter instance in `allocator`.
+    /// Create a new EKF2 filter instance in `allocator` with default configuration.
     ///
     /// The allocator remains borrowed for as long as the returned handle is
     /// alive. All C++ allocations owned by this EKF use this resource.
-    pub fn new_in(allocator: &'a A, timestamp_us: u64) -> Result<Self, EkfError> {
+    pub fn new_in(allocator: &'a A) -> Result<Self, EkfError> {
+        Self::with_config_in(EkfConfig::default(), allocator)
+    }
+
+    /// Create a new EKF2 filter instance in `allocator` with `config`.
+    ///
+    /// The allocator remains borrowed for as long as the returned handle is
+    /// alive. All C++ allocations owned by this EKF use this resource. The
+    /// first IMU sample establishes the filter's initial timestamp.
+    pub fn with_config_in(config: EkfConfig, allocator: &'a A) -> Result<Self, EkfError> {
         let raw_allocator = crate::allocator::raw(allocator);
         let ptr = unsafe { ffi::ekf2_create_heap_with_allocator(raw_allocator) };
         if ptr.is_null() {
             return Err(EkfError::AllocFailed);
         }
 
-        // SAFETY: ptr is a valid, constructed Ekf object.
-        let ok = unsafe { ffi::ekf2_init(ptr, timestamp_us) };
-        if !ok {
-            unsafe { ffi::ekf2_destroy_heap(ptr) };
-            return Err(EkfError::InitFailed);
-        }
-
-        Ok(Self {
+        let mut ekf = Self {
             ptr: NonNull::new(ptr).unwrap(),
             _allocator: PhantomData,
             _not_send_sync: PhantomData,
-        })
+        };
+        {
+            let mut params = ekf.params_mut();
+            params.set_predict_interval_us(config.predict_interval_us);
+            params.set_delay_max_ms(config.delay_max_ms);
+        }
+
+        Ok(ekf)
     }
 
     #[inline]

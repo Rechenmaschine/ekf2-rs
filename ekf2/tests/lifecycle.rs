@@ -6,11 +6,11 @@ use common::{feed_imu, quat_norm, yaw_from_quaternion};
 // ── Drop safety ──────────────────────────────────────────────────────────────
 
 #[test]
-fn drop_of_initialized_instance_is_safe() {
-    let ekf = Ekf::new(0).expect("init should succeed");
+fn drop_of_new_instance_is_safe() {
+    let ekf = Ekf::new().expect("init should succeed");
     drop(ekf);
     // Re-init after drop should succeed.
-    let ekf2 = Ekf::new(0).expect("re-init should succeed");
+    let ekf2 = Ekf::new().expect("re-init should succeed");
     drop(ekf2);
 }
 
@@ -19,7 +19,7 @@ fn drop_of_initialized_instance_is_safe() {
 #[test]
 fn repeated_init_update_drop_cycles_remain_stable() {
     for cycle in 0..200_u64 {
-        let mut ekf = Ekf::new(cycle * 1_000_000).expect("init should succeed");
+        let mut ekf = Ekf::new().expect("init should succeed");
         let _ = feed_imu(&mut ekf, cycle * 1_000_000 + 100_000, 80, 0.0002);
         let q = ekf.quaternion();
         assert!(q.iter().all(|v| v.is_finite()));
@@ -28,7 +28,7 @@ fn repeated_init_update_drop_cycles_remain_stable() {
 
 #[test]
 fn quaternion_stays_unit_length_under_imu_loop() {
-    let mut ekf = Ekf::new(0).expect("init should succeed");
+    let mut ekf = Ekf::new().expect("init should succeed");
     let _ = feed_imu(&mut ekf, 100_000, 400, 0.0002);
 
     let q = ekf.quaternion();
@@ -52,7 +52,7 @@ fn many_instances_stay_independent() {
 
     let mut ekfs: Vec<Ekf> = (0..INSTANCES)
         .map(|i| {
-            let mut ekf = Ekf::new(0).expect("loop-created EKF init should succeed");
+            let mut ekf = Ekf::new().expect("loop-created EKF init should succeed");
             let mut p = ekf.params_mut();
             p.set_gyro_noise(0.012 + i as f32 * 0.003);
             p.set_accel_noise(0.30 + i as f32 * 0.04);

@@ -1,4 +1,4 @@
-use ekf2::{types::ImuSample, Ekf, EkfError};
+use ekf2::{types::ImuSample, Ekf, EkfConfig, EkfError};
 
 #[cfg(feature = "gnss")]
 #[test]
@@ -22,7 +22,7 @@ fn imu_sample(timestamp_us: u64) -> ImuSample {
 
 #[test]
 fn ekf_basic_init_and_update() {
-    let mut ekf = Ekf::new(0).expect("Ekf::new should succeed");
+    let mut ekf = Ekf::new().expect("Ekf::new should succeed");
 
     for step in 1..=8_u64 {
         ekf.set_imu_data(&imu_sample(step * 10_000));
@@ -32,7 +32,7 @@ fn ekf_basic_init_and_update() {
 
 #[test]
 fn ekf_is_movable() {
-    let mut ekf = Ekf::new(0).expect("Ekf::new should succeed");
+    let mut ekf = Ekf::new().expect("Ekf::new should succeed");
     ekf.set_imu_data(&imu_sample(10_000));
     assert!(matches!(ekf.update(), Ok(()) | Err(EkfError::UpdateFailed)));
 
@@ -44,4 +44,16 @@ fn ekf_is_movable() {
         Ok(()) | Err(EkfError::UpdateFailed)
     ));
     assert_eq!(moved.quaternion().len(), 4);
+}
+
+#[test]
+fn configured_ekf_uses_named_startup_configuration() {
+    let ekf = Ekf::with_config(EkfConfig {
+        predict_interval_us: 5_000,
+        delay_max_ms: 200.0,
+    })
+    .expect("configured EKF should succeed");
+
+    assert_eq!(ekf.params().predict_interval_us(), 5_000);
+    assert_eq!(ekf.params().delay_max_ms(), 200.0);
 }

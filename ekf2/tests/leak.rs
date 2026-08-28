@@ -45,7 +45,7 @@ static A: CountingAllocator = CountingAllocator;
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 fn run_imu_cycle(ts_base: u64, steps: u64) {
-    let mut ekf = Ekf::new(ts_base).expect("init should succeed");
+    let mut ekf = Ekf::new().expect("init should succeed");
     let dt_s = 0.01_f32;
     for i in 0..steps {
         let ts = ts_base + 100_000 + i * 10_000;
@@ -57,7 +57,7 @@ fn run_imu_cycle(ts_base: u64, steps: u64) {
 
 #[cfg(all(feature = "gnss", feature = "magnetometer", feature = "barometer"))]
 fn run_sensor_cycle(ts_base: u64, steps: u64) {
-    let mut ekf = Ekf::new(ts_base).expect("init should succeed");
+    let mut ekf = Ekf::new().expect("init should succeed");
     let dt_s = 0.01_f32;
     for i in 0..steps {
         let ts = ts_base + 100_000 + i * 10_000;

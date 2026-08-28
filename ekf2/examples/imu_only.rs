@@ -1,7 +1,7 @@
 use ekf2::{types::ImuSample, Ekf, EkfError};
 
 fn main() -> Result<(), EkfError> {
-    let mut ekf = Ekf::new(0)?;
+    let mut ekf = Ekf::new()?;
     let dt_s = 0.01_f32;
     let mut update_failed = 0_u32;
 
