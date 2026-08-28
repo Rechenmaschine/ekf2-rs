@@ -9,6 +9,24 @@ use crate::error::EkfError;
 use crate::params::{Params, ParamsMut};
 use crate::types::ImuSample;
 
+/// Initial timing configuration for an EKF2 filter.
+#[derive(Debug, Clone, Copy)]
+pub struct EkfConfig {
+    /// EKF prediction/update interval in microseconds.
+    pub predict_interval_us: i32,
+    /// Maximum aiding-sensor delay in milliseconds.
+    pub delay_max_ms: f32,
+}
+
+impl Default for EkfConfig {
+    fn default() -> Self {
+        Self {
+            predict_interval_us: 10_000,
+            delay_max_ms: 110.0,
+        }
+    }
+}
+
 /// A heap-allocated PX4 EKF2 filter instance.
 ///
 /// The C++ `Ekf` object is allocated and owned by `ekf2-sys` on the C++
@@ -31,23 +49,6 @@ use crate::types::ImuSample;
 /// ekf.set_imu_data(&imu);
 /// let _ = ekf.update();
 /// ```
-#[derive(Debug, Clone, Copy)]
-pub struct EkfConfig {
-    /// EKF prediction/update interval in microseconds.
-    pub predict_interval_us: i32,
-    /// Maximum aiding-sensor delay in milliseconds.
-    pub delay_max_ms: f32,
-}
-
-impl Default for EkfConfig {
-    fn default() -> Self {
-        Self {
-            predict_interval_us: 10_000,
-            delay_max_ms: 110.0,
-        }
-    }
-}
-
 pub struct Ekf<'a, A: Allocator = Global> {
     ptr: NonNull<core::ffi::c_void>,
     _allocator: PhantomData<&'a A>,
