@@ -42,12 +42,11 @@
 //!
 //! # no_std
 //!
-//! This crate is `no_std` compatible but requires the `alloc` crate.
+//! This crate does not depend on `std`. [`Ekf::new`] uses the target's global
+//! allocator, while [`Ekf::new_in`] accepts a custom allocator.
 
 #![no_std]
 #![deny(unsafe_op_in_unsafe_fn)]
-
-extern crate alloc;
 
 mod allocator;
 pub mod ekf;
@@ -64,7 +63,6 @@ pub use params::{
     OpticalFlowControl, PositionReference, RangeControl, SolnStatus,
 };
 
-// Output types returned by EKF methods — re-exported so users don't need to depend on ekf2-sys.
 pub use ekf2_sys::EkfBiasEstimatorStatus as BiasEstimatorStatus;
 pub use ekf2_sys::{
     EkfAidSource1d as AidSource1d, EkfAidSource2d as AidSource2d, EkfAidSource3d as AidSource3d,

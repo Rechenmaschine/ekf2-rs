@@ -1,9 +1,7 @@
-use allocator_api2::alloc::{Allocator, Global, Layout};
+use allocator_api2::alloc::{Allocator, Layout};
 use core::ffi::c_void;
 use core::ptr::NonNull;
 use ekf2_sys as ffi;
-
-pub(crate) static GLOBAL_ALLOCATOR: Global = Global;
 
 unsafe extern "C" fn allocate<A: Allocator>(
     context: *mut c_void,

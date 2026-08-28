@@ -16,10 +16,6 @@
 // PX4 EKF headers (from vendor/)
 #include <EKF/ekf.h>
 
-// PX4's ekf.h hardcodes these includes, so wrapper/uORB/topics/ provides
-// minimal plain-C struct definitions (estimator_aid_sourceXd_s) required to
-// compile. These have nothing to do with the uORB pub/sub system — they are
-// purely struct definitions that satisfy PX4's internal include paths.
 #include <uORB/topics/estimator_aid_source1d.h>
 #include <uORB/topics/estimator_aid_source2d.h>
 #include <uORB/topics/estimator_aid_source3d.h>
@@ -29,9 +25,6 @@
 static inline Ekf* as_ekf(void* p)       { return static_cast<Ekf*>(p); }
 static inline const Ekf* as_ekf(const void* p) { return static_cast<const Ekf*>(p); }
 
-// Compatibility path for callers that do not provide an explicit resource.
-// The safe Rust wrapper's default allocator is still used, but it is now
-// passed through the same per-instance callback path as custom allocators.
 extern "C" {
     uint8_t* ekf2_rust_alloc(size_t size, size_t align);
     uint8_t* ekf2_rust_alloc_zeroed(size_t size, size_t align);

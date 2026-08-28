@@ -81,7 +81,6 @@ public:
 		reset();
 	};
 
-	// Ekf is destroyed through the allocator-aware complete-destructor path.
 	~Ekf() = default;
 
 	// initialise variables to sane values (also interface class)

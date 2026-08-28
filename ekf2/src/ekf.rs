@@ -32,11 +32,15 @@ use crate::types::ImuSample;
 /// ```
 pub struct Ekf<'a, A: Allocator = Global> {
     ptr: NonNull<core::ffi::c_void>,
-    // The C++ resource context points at the borrowed allocator. Keeping the
-    // lifetime in the Rust type prevents that allocator from being moved or
-    // dropped while C++ may call the callbacks.
     _allocator: PhantomData<&'a A>,
     _not_send_sync: PhantomData<*mut ()>,
+}
+
+impl Ekf<'static, Global> {
+    /// Create and initialize a new EKF2 filter using Rust's global allocator.
+    pub fn new(timestamp_us: u64) -> Result<Self, EkfError> {
+        Self::new_in(&Global, timestamp_us)
+    }
 }
 
 impl<'a, A: Allocator> Drop for Ekf<'a, A> {
@@ -1278,12 +1282,5 @@ impl<'a, A: Allocator> Ekf<'a, A> {
     #[inline]
     pub fn set_min_required_gps_health_time(&mut self, time_us: u32) {
         unsafe { ffi::ekf2_set_min_required_gps_health_time(self.ptr(), time_us) };
-    }
-}
-
-impl Ekf<'static, Global> {
-    /// Create and initialize a new EKF2 filter using Rust's global allocator.
-    pub fn new(timestamp_us: u64) -> Result<Self, EkfError> {
-        Self::new_in(&crate::allocator::GLOBAL_ALLOCATOR, timestamp_us)
     }
 }

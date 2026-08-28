@@ -1,9 +1,5 @@
 /**
- * Explicit memory resource used by all allocations owned by one Ekf.
- *
- * This is intentionally a tiny C++ value type.  It erases the allocator at
- * the C ABI boundary, while keeping allocation/deallocation paired with the
- * same resource for the lifetime of the EKF instance.
+ * Memory resource used by all allocations owned by one Ekf.
  */
 
 #pragma once

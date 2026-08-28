@@ -330,9 +330,6 @@ public:
 
 		explicit EstimatorInterface(EkfAllocator allocator)
 			: _memory(allocator), _output_predictor(_memory), _imu_buffer(_memory, kBufferLengthDefault) {}
-	// The extracted EKF owns this object directly and never deletes it through
-	// an EstimatorInterface pointer. Keep the destructor non-virtual so the
-	// compiler does not emit a deleting-destructor dependency on operator delete.
 		~EstimatorInterface();
 
 	virtual bool init(uint64_t timestamp) = 0;

@@ -50,8 +50,6 @@ class EstimatorAidSource
 {
 public:
 	EstimatorAidSource() = default;
-	// Aid sources are embedded value members in the extracted EKF; they are not
-	// destroyed through a base pointer.
 	~EstimatorAidSource() = default;
 
 	virtual bool update(Ekf &ekf, const estimator::imuSample &imu_delayed) = 0;
