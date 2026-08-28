@@ -145,14 +145,6 @@ impl<'a, A: Allocator> Ekf<'a, A> {
             .ok_or(EkfError::UpdateFailed)
     }
 
-    /// Reset the filter in-place. All filter state is wiped and
-    /// re-initialized with the given timestamp.
-    pub fn reset(&mut self, timestamp_us: u64) -> Result<(), EkfError> {
-        unsafe { ffi::ekf2_reset(self.ptr(), timestamp_us) }
-            .then_some(())
-            .ok_or(EkfError::InitFailed)
-    }
-
     #[inline]
     pub fn set_imu_data(&mut self, sample: &ImuSample) {
         unsafe { ffi::ekf2_set_imu_data(self.ptr(), sample as *const _) };

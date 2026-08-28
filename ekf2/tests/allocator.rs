@@ -64,10 +64,6 @@ fn cpp_storage_uses_the_allocator_bound_to_each_instance() {
     ekf_b.set_imu_data(&imu);
     ekf_b.set_system_flag_data(&flags);
 
-    ekf_a
-        .reset(20_000)
-        .expect("reset must preserve allocator ownership");
-
     assert!(allocator_a.allocations.load(Ordering::Relaxed) > a_allocations_after_init);
     assert!(allocator_b.allocations.load(Ordering::Relaxed) > b_allocations_after_init);
 
