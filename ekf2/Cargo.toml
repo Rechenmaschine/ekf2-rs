@@ -43,7 +43,7 @@ logging = ["ekf2-sys/logging"]
 [dependencies]
 allocator-api2 = { version = "0.4", default-features = false, features = ["alloc"] }
 bitflags = "2"
-ekf2-sys = { version = "0.1.0", path = "../ekf2-sys" }
+ekf2-sys = { version = "0.1.0", path = "../ekf2-sys", default-features = false }
 
 [dev-dependencies]
 static_cell = "2"

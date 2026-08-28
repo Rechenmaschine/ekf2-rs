@@ -71,6 +71,7 @@ static inline void copy_vec3_to_array(const Vector3f &v, float out[3])
     out[2] = v(2);
 }
 
+#if defined(CONFIG_EKF2_GNSS) || defined(CONFIG_EKF2_BAROMETER) || defined(CONFIG_EKF2_EXTERNAL_VISION)
 static inline void copy_bias_status_to_c(const BiasEstimator::status &in, EkfBiasEstimatorStatus *out)
 {
     if (!out) {
@@ -83,6 +84,7 @@ static inline void copy_bias_status_to_c(const BiasEstimator::status &in, EkfBia
     out->innov_var = in.innov_var;
     out->innov_test_ratio = in.innov_test_ratio;
 }
+#endif
 
 
 // ── Layout verification ───────────────────────────────────────────────────
