@@ -141,8 +141,7 @@ impl<'a, A: Allocator> Ekf<'a, A> {
     /// Run one filter update cycle.
     ///
     /// Returns `true` when the filter processed an update and `false` when no
-    /// update was available, such as while the input buffer is filling or the
-    /// filter is still aligning.
+    /// update was available.
     pub fn update(&mut self) -> bool {
         unsafe { ffi::ekf2_update(self.ptr()) }
     }
