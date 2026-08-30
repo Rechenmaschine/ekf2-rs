@@ -72,6 +72,9 @@ exposes related API in Rust.
 | `c-stubs`           | no      | -                               |
 
 Note: `range-finder` and `optical-flow` implicitly enable `CONFIG_EKF2_TERRAIN` in `ekf2-sys/build.rs`.
+`drag-fusion` and `sideslip` implicitly enable `wind`; `airspeed` implicitly enables
+`drag-fusion`, `sideslip`, and `wind` because PX4 uses those implementation components
+when compiling airspeed fusion.
 
 The `logging` feature enables PX4 diagnostic messages through the target's
 `printf`/`fprintf` symbols. The `c-stubs` feature provides no-op C runtime
