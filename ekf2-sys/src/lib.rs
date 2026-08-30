@@ -29,6 +29,9 @@
 //! | `logging`          | no      | -                           |
 //! | `c-stubs`          | no      | -                           |
 //!
+//! `range-finder` and `optical-flow` imply `terrain`. `drag-fusion` and
+//! `sideslip` imply `wind`; `airspeed` implies all three of those features.
+//!
 //! # Memory
 //!
 //! `ekf2_create_heap` uses the Rust global allocator through the exported

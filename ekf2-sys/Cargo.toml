@@ -34,21 +34,21 @@ version.workspace = true
 [features]
 default = ["gnss", "magnetometer", "barometer"]
 
-airspeed = []                     # CONFIG_EKF2_AIRSPEED
-aux-vel = []                      # CONFIG_EKF2_AUXVEL
-baro-compensation = ["barometer"] # CONFIG_EKF2_BARO_COMPENSATION
-barometer = []                    # CONFIG_EKF2_BAROMETER
-drag-fusion = []                  # CONFIG_EKF2_DRAG_FUSION
-external-vision = []              # CONFIG_EKF2_EXTERNAL_VISION
-gnss = []                         # CONFIG_EKF2_GNSS
-gnss-yaw = ["gnss"]               # CONFIG_EKF2_GNSS_YAW
-gravity-fusion = []               # CONFIG_EKF2_GRAVITY_FUSION
-magnetometer = []                 # CONFIG_EKF2_MAGNETOMETER
-optical-flow = ["terrain"]        # CONFIG_EKF2_OPTICAL_FLOW
-range-finder = ["terrain"]        # CONFIG_EKF2_RANGE_FINDER
-sideslip = []                     # CONFIG_EKF2_SIDESLIP
-terrain = []                      # CONFIG_EKF2_TERRAIN
-wind = []                         # CONFIG_EKF2_WIND
+airspeed = ["drag-fusion", "sideslip"] # CONFIG_EKF2_AIRSPEED
+aux-vel = []                           # CONFIG_EKF2_AUXVEL
+baro-compensation = ["barometer"]      # CONFIG_EKF2_BARO_COMPENSATION
+barometer = []                         # CONFIG_EKF2_BAROMETER
+drag-fusion = ["wind"]                 # CONFIG_EKF2_DRAG_FUSION
+external-vision = []                   # CONFIG_EKF2_EXTERNAL_VISION
+gnss = []                              # CONFIG_EKF2_GNSS
+gnss-yaw = ["gnss"]                    # CONFIG_EKF2_GNSS_YAW
+gravity-fusion = []                    # CONFIG_EKF2_GRAVITY_FUSION
+magnetometer = []                      # CONFIG_EKF2_MAGNETOMETER
+optical-flow = ["terrain"]             # CONFIG_EKF2_OPTICAL_FLOW
+range-finder = ["terrain"]             # CONFIG_EKF2_RANGE_FINDER
+sideslip = ["wind"]                    # CONFIG_EKF2_SIDESLIP
+terrain = []                           # CONFIG_EKF2_TERRAIN
+wind = []                              # CONFIG_EKF2_WIND
 
 # Provide no-op libc symbols for bare-metal targets that do not have them
 # (`printf`, `fprintf`, `puts`, `fwrite`, `qsort`).
