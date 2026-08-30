@@ -91,8 +91,7 @@ Further targets should also work, but are untested.
 
 The EKF2 C++ code has been modified to route all EKF-owned dynamic allocations
 through allocator callbacks provided by Rust. `Ekf::new()` uses the global
-allocator, while `Ekf::with_config()` selects initial timing parameters.
-`Ekf::new_in()` accepts any
+allocator, and `Ekf::new_in()` accepts any
 [`allocator_api2::alloc::Allocator`](https://docs.rs/allocator-api2/latest/allocator_api2/alloc/trait.Allocator.html).
 
 ## License

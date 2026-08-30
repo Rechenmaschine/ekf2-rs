@@ -36,8 +36,7 @@
 //! # Memory model
 //!
 //! [`Ekf::new`] creates the heap-owned C++ object using Rust's global
-//! allocator. [`Ekf::with_config`] selects the initial timing configuration.
-//! [`Ekf::new_in`] and [`Ekf::with_config_in`] accept any `allocator-api2`
+//! allocator. [`Ekf::new_in`] and [`Ekf::with_config_in`] accept any `allocator-api2`
 //! allocator. The selected allocator is passed to C++ as per-instance callbacks
 //! and is used for the object and all of its owned dynamic storage.
 //!
