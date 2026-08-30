@@ -354,8 +354,8 @@ impl EkfFlowSample {
 impl EkfExtVisionSample {
     /// Construct an external-vision sample.
     ///
-    /// Defaults: `pos_frame = LocalFrameNed`, `vel_frame = LocalFrameNed`,
-    /// `reset_counter = 0`, `quality = 100` (perfect).
+    /// Defaults: `pos_frame = LocalFrameFrd`, `vel_frame = BodyFrameFrd`,
+    /// `reset_counter = 0`, `quality = 0`.
     ///
     /// `ang_var` is per-axis attitude variance in rad^2 for X, Y, Z.
     /// Use `[v; 3]` to broadcast a single scalar variance to all axes.
@@ -378,10 +378,10 @@ impl EkfExtVisionSample {
             pos_var,
             ang_var,
             vel_var,
-            pos_frame: PositionFrame::LocalFrameNed as u8,
-            vel_frame: VelocityFrame::LocalFrameNed as u8,
+            pos_frame: PositionFrame::LocalFrameFrd as u8,
+            vel_frame: VelocityFrame::BodyFrameFrd as u8,
             reset_counter: 0,
-            quality: 100,
+            quality: 0,
         }
     }
 

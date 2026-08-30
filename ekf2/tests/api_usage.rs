@@ -10,6 +10,19 @@ fn gnss_constructor_preserves_pdop() {
     assert_eq!(sample.pdop, 1.5);
 }
 
+#[cfg(feature = "external-vision")]
+#[test]
+fn external_vision_constructor_matches_px4_defaults() {
+    let sample = ekf2::types::ExtVisionSample::new(
+        0, [0.0; 3], [0.0; 4], [0.0; 3], [0.0; 3], [0.0; 3], [0.0; 3],
+    );
+
+    assert_eq!(sample.pos_frame, ekf2::PositionFrame::LocalFrameFrd as u8);
+    assert_eq!(sample.vel_frame, ekf2::VelocityFrame::BodyFrameFrd as u8);
+    assert_eq!(sample.reset_counter, 0);
+    assert_eq!(sample.quality, 0);
+}
+
 fn imu_sample(timestamp_us: u64) -> ImuSample {
     ImuSample::new(
         timestamp_us,
