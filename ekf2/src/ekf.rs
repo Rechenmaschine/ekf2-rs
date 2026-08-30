@@ -556,6 +556,14 @@ impl<'a, A: Allocator> Ekf<'a, A> {
         o
     }
 
+    /// Return whether PX4 has established a WGS-84 latitude/longitude origin.
+    ///
+    /// Check this before using [`Self::global_origin`].
+    #[inline]
+    pub fn global_origin_valid(&self) -> bool {
+        unsafe { ffi::ekf2_global_origin_valid(self.ptr_const()) }
+    }
+
     #[inline]
     pub fn set_global_origin(
         &mut self,

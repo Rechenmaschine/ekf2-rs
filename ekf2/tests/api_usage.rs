@@ -54,3 +54,14 @@ fn configured_ekf_uses_named_startup_configuration() {
     assert_eq!(ekf.params().predict_interval_us(), 5_000);
     assert_eq!(ekf.params().delay_max_ms(), 200.0);
 }
+
+#[test]
+fn global_origin_reports_when_it_is_established() {
+    let mut ekf = Ekf::new().expect("Ekf::new should succeed");
+    assert!(!ekf.global_origin_valid());
+
+    ekf.set_global_origin(47.397742, 8.545594, 488.0, f32::NAN, f32::NAN)
+        .expect("valid global origin should be accepted");
+
+    assert!(ekf.global_origin_valid());
+}

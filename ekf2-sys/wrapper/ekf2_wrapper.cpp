@@ -803,6 +803,11 @@ extern "C" void ekf2_get_global_origin(const void* self, uint64_t* time_us,
     as_ekf(self)->getEkfGlobalOrigin(*time_us, *lat, *lon, *alt);
 }
 
+extern "C" bool ekf2_global_origin_valid(const void* self)
+{
+    return as_ekf(self)->global_origin_valid();
+}
+
 extern "C" bool ekf2_set_global_origin(void* self, double lat, double lon, float alt,
                                         float hpos_var, float vpos_var)
 {

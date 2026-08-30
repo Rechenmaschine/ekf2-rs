@@ -591,6 +591,9 @@ void ekf2_get_ctrl_limits(const void* self, float* vxy_max, float* vz_max,
 void ekf2_get_global_origin(const void* self, uint64_t* time_us,
                              double* lat, double* lon, float* alt);
 
+/** Return whether a WGS-84 latitude/longitude origin has been established. */
+bool ekf2_global_origin_valid(const void* self);
+
 /**
  * Set the WGS-84 origin used for local↔global position conversion.
  *
