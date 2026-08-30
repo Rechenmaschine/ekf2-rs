@@ -1,4 +1,4 @@
-use ekf2::{types::ImuSample, Ekf, EkfError};
+use ekf2::{types::ImuSample, Ekf};
 use std::sync::{Arc, Barrier};
 use std::thread;
 
@@ -25,8 +25,8 @@ fn high_contention_sensor_churn_is_stable() {
     for thread_idx in 0..THREADS {
         let start = Arc::clone(&start);
         handles.push(thread::spawn(move || {
-            let mut ekf = Ekf::new(0).expect("thread-local EKF init should succeed");
-            let mut update_failed = 0_u32;
+            let mut ekf = Ekf::new().expect("thread-local EKF init should succeed");
+            let mut skipped_updates = 0_u32;
             let mut reset_count_regressions = 0_u32;
             let mut prev_counts = (
                 ekf.quat_reset_count(),
@@ -48,8 +48,8 @@ fn high_contention_sensor_churn_is_stable() {
                     0.01,
                 );
                 ekf.set_imu_data(&imu);
-                if let Err(EkfError::UpdateFailed) = ekf.update() {
-                    update_failed += 1;
+                if !ekf.update() {
+                    skipped_updates += 1;
                 }
 
                 #[cfg(feature = "barometer")]
@@ -74,6 +74,7 @@ fn high_contention_sensor_churn_is_stable() {
                         0.6,
                         0.9,
                         0.3,
+                        1.0,
                         3,
                         14,
                     ));
@@ -105,17 +106,17 @@ fn high_contention_sensor_churn_is_stable() {
                 }
             }
 
-            (update_failed, reset_count_regressions, snapshot(&ekf))
+            (skipped_updates, reset_count_regressions, snapshot(&ekf))
         }));
     }
 
     for handle in handles {
-        let (update_failed, reset_count_regressions, snap) = handle
+        let (skipped_updates, reset_count_regressions, snap) = handle
             .join()
             .expect("high-contention worker thread should not panic");
         assert!(
-            update_failed < 240,
-            "too many update failures in high-contention churn: {update_failed}"
+            skipped_updates < 240,
+            "too many skipped updates in high-contention churn: {skipped_updates}"
         );
         assert_eq!(
             reset_count_regressions, 0,
@@ -138,8 +139,8 @@ fn identical_inputs_produce_equivalent_snapshots() {
     for _ in 0..THREADS {
         let start = Arc::clone(&start);
         handles.push(thread::spawn(move || {
-            let mut ekf = Ekf::new(0).expect("thread-local EKF init should succeed");
-            let mut update_failed = 0_u32;
+            let mut ekf = Ekf::new().expect("thread-local EKF init should succeed");
+            let mut skipped_updates = 0_u32;
 
             start.wait();
 
@@ -147,21 +148,21 @@ fn identical_inputs_produce_equivalent_snapshots() {
                 let ts = 1_000_000 + i * 10_000;
                 let imu = ImuSample::new(ts, [0.0, 0.0, 0.00023], [0.0, 0.0, -0.0981], 0.01, 0.01);
                 ekf.set_imu_data(&imu);
-                if let Err(EkfError::UpdateFailed) = ekf.update() {
-                    update_failed += 1;
+                if !ekf.update() {
+                    skipped_updates += 1;
                 }
             }
 
-            (update_failed, snapshot(&ekf))
+            (skipped_updates, snapshot(&ekf))
         }));
     }
 
     let mut snapshots = Vec::with_capacity(THREADS);
     for handle in handles {
-        let (update_failed, snap) = handle
+        let (skipped_updates, snap) = handle
             .join()
             .expect("deterministic parallel worker should not panic");
-        assert!(update_failed < 120);
+        assert!(skipped_updates < 120);
         assert_snapshot_sane("deterministic-worker", snap);
         snapshots.push(snap);
     }

@@ -211,6 +211,9 @@ impl EkfImuSample {
 #[cfg(feature = "gnss")]
 impl EkfGnssSample {
     /// Construct a GNSS sample.
+    ///
+    /// `pdop` is the position dilution of precision reported by the GNSS
+    /// receiver and is compared against the EKF GNSS PDOP threshold.
     #[inline]
     #[allow(clippy::too_many_arguments)]
     pub fn new(
@@ -222,6 +225,7 @@ impl EkfGnssSample {
         hacc: f32,
         vacc: f32,
         sacc: f32,
+        pdop: f32,
         fix_type: u8,
         nsats: u8,
     ) -> Self {
@@ -237,7 +241,7 @@ impl EkfGnssSample {
             hacc,
             vacc,
             sacc,
-            pdop: 0.0,
+            pdop,
             fix_type,
             nsats,
             spoofed: 0,
@@ -350,8 +354,8 @@ impl EkfFlowSample {
 impl EkfExtVisionSample {
     /// Construct an external-vision sample.
     ///
-    /// Defaults: `pos_frame = LocalFrameNed`, `vel_frame = LocalFrameNed`,
-    /// `reset_counter = 0`, `quality = 100` (perfect).
+    /// Defaults: `pos_frame = LocalFrameFrd`, `vel_frame = BodyFrameFrd`,
+    /// `reset_counter = 0`, `quality = 0`.
     ///
     /// `ang_var` is per-axis attitude variance in rad^2 for X, Y, Z.
     /// Use `[v; 3]` to broadcast a single scalar variance to all axes.
@@ -374,10 +378,10 @@ impl EkfExtVisionSample {
             pos_var,
             ang_var,
             vel_var,
-            pos_frame: PositionFrame::LocalFrameNed as u8,
-            vel_frame: VelocityFrame::LocalFrameNed as u8,
+            pos_frame: PositionFrame::LocalFrameFrd as u8,
+            vel_frame: VelocityFrame::BodyFrameFrd as u8,
             reset_counter: 0,
-            quality: 100,
+            quality: 0,
         }
     }
 

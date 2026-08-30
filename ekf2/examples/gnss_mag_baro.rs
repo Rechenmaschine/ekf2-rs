@@ -10,10 +10,10 @@ Run with: cargo run -p ekf2 --example gnss_mag_baro --features 'gnss,magnetomete
 fn main() -> Result<(), ekf2::EkfError> {
     use ekf2::{
         types::{BaroSample, GnssSample, ImuSample, MagSample},
-        Ekf, EkfError, HeightReference,
+        Ekf, HeightReference,
     };
 
-    let mut ekf = Ekf::new(0)?;
+    let mut ekf = Ekf::new()?;
     {
         let mut params = ekf.params_mut();
         params.set_hgt_ref(HeightReference::Baro);
@@ -23,7 +23,7 @@ fn main() -> Result<(), ekf2::EkfError> {
     }
 
     let dt_s = 0.01_f32;
-    let mut update_failed = 0_u32;
+    let mut skipped_updates = 0_u32;
 
     let mut lat = 47.397742_f64;
     let mut lon = 8.545594_f64;
@@ -45,7 +45,19 @@ fn main() -> Result<(), ekf2::EkfError> {
             lat += 0.00000002;
             lon += 0.00000005;
             alt += 0.001;
-            let gps = GnssSample::new(ts_us, lat, lon, alt, [2.0, 0.1, 0.0], 0.5, 0.8, 0.15, 3, 16);
+            let gps = GnssSample::new(
+                ts_us,
+                lat,
+                lon,
+                alt,
+                [2.0, 0.1, 0.0],
+                0.5,
+                0.8,
+                0.15,
+                1.0,
+                3,
+                16,
+            );
             ekf.set_gps_data(&gps);
         }
 
@@ -59,8 +71,8 @@ fn main() -> Result<(), ekf2::EkfError> {
             ekf.set_baro_data(&baro);
         }
 
-        if let Err(EkfError::UpdateFailed) = ekf.update() {
-            update_failed += 1;
+        if !ekf.update() {
+            skipped_updates += 1;
         }
     }
 
@@ -71,7 +83,7 @@ fn main() -> Result<(), ekf2::EkfError> {
     println!("velocity_ned: {:?}", ekf.velocity_ned());
     println!("pos_var: {:?}", ekf.pos_variance());
     println!("vel_var: {:?}", ekf.vel_variance());
-    println!("update_failed_count: {update_failed}");
+    println!("skipped_update_count: {skipped_updates}");
 
     Ok(())
 }

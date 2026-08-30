@@ -17,7 +17,7 @@ trait may be used. By default, `Ekf::new()` uses Rust's global allocator.
 use ekf2::{Ekf, EkfError, types::ImuSample};
 
 fn main() -> Result<(), EkfError> {
-    let mut ekf = Ekf::new(0)?;
+    let mut ekf = Ekf::new()?;
     let dt_s = 0.01_f32;
     let imu = ImuSample::new(
         10_000,                   // time_us
@@ -39,7 +39,7 @@ The long-term goal is to expose the full PX4 EKF2 algorithm through Rust.
 
 Currently supported functionality includes:
 
-- Runtime + inputs: standalone `no_std` heap-owned EKF instance with `new()`/`new_in()`/`update()`, IMU always-on, and feature-gated
+- Runtime + inputs: standalone `no_std` heap-owned EKF instance with `new()`/`with_config()`/`new_in()`/`with_config_in()`/`update()`, IMU always-on, and feature-gated
   sensor feeds (GNSS, mag, baro, airspeed, range, flow, EV, aux-vel).
 - Outputs + diagnostics: attitude/position/velocity, biases/variances, innovation and aid-source diagnostics,
   validity/solution/fault/control status.
@@ -91,7 +91,7 @@ Further targets should also work, but are untested.
 
 The EKF2 C++ code has been modified to route all EKF-owned dynamic allocations
 through allocator callbacks provided by Rust. `Ekf::new()` uses the global
-allocator, while `Ekf::new_in()` accepts any
+allocator, and `Ekf::new_in()` accepts any
 [`allocator_api2::alloc::Allocator`](https://docs.rs/allocator-api2/latest/allocator_api2/alloc/trait.Allocator.html).
 
 ## License

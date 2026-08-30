@@ -47,8 +47,8 @@ fn cpp_storage_uses_the_allocator_bound_to_each_instance() {
         deallocations: AtomicUsize::new(0),
     };
 
-    let mut ekf_a = Ekf::new_in(&allocator_a, 0).expect("custom allocator A should initialize");
-    let mut ekf_b = Ekf::new_in(&allocator_b, 0).expect("custom allocator B should initialize");
+    let mut ekf_a = Ekf::new_in(&allocator_a).expect("custom allocator A should initialize");
+    let mut ekf_b = Ekf::new_in(&allocator_b).expect("custom allocator B should initialize");
     let a_allocations_after_init = allocator_a.allocations.load(Ordering::Relaxed);
     let b_allocations_after_init = allocator_b.allocations.load(Ordering::Relaxed);
 
@@ -63,10 +63,6 @@ fn cpp_storage_uses_the_allocator_bound_to_each_instance() {
     ekf_a.set_system_flag_data(&flags);
     ekf_b.set_imu_data(&imu);
     ekf_b.set_system_flag_data(&flags);
-
-    ekf_a
-        .reset(20_000)
-        .expect("reset must preserve allocator ownership");
 
     assert!(allocator_a.allocations.load(Ordering::Relaxed) > a_allocations_after_init);
     assert!(allocator_b.allocations.load(Ordering::Relaxed) > b_allocations_after_init);

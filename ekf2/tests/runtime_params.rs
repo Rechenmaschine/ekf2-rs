@@ -15,8 +15,8 @@ use ekf2::{MagDeclinationControl, MagFusionType};
 
 #[test]
 fn params_are_instance_local_for_representative_fields() {
-    let mut a = Ekf::new(0).expect("init a should succeed");
-    let b = Ekf::new(0).expect("init b should succeed");
+    let mut a = Ekf::new().expect("init a should succeed");
+    let b = Ekf::new().expect("init b should succeed");
 
     {
         let mut p = a.params_mut();

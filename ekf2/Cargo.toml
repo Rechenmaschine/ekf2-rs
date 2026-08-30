@@ -22,7 +22,7 @@ barometer = ["ekf2-sys/barometer"]                              # CONFIG_EKF2_BA
 drag-fusion = ["ekf2-sys/drag-fusion"]                          # CONFIG_EKF2_DRAG_FUSION
 external-vision = ["ekf2-sys/external-vision"]                  # CONFIG_EKF2_EXTERNAL_VISION
 gnss = ["ekf2-sys/gnss"]                                        # CONFIG_EKF2_GNSS
-gnss-yaw = ["ekf2-sys/gnss-yaw"]                                # CONFIG_EKF2_GNSS_YAW
+gnss-yaw = ["gnss", "ekf2-sys/gnss-yaw"]                        # CONFIG_EKF2_GNSS_YAW
 gravity-fusion = ["ekf2-sys/gravity-fusion"]                    # CONFIG_EKF2_GRAVITY_FUSION
 magnetometer = ["ekf2-sys/magnetometer"]                        # CONFIG_EKF2_MAGNETOMETER
 optical-flow = ["terrain", "ekf2-sys/optical-flow"]             # CONFIG_EKF2_OPTICAL_FLOW
@@ -43,7 +43,7 @@ logging = ["ekf2-sys/logging"]
 [dependencies]
 allocator-api2 = { version = "0.4", default-features = false, features = ["alloc"] }
 bitflags = "2"
-ekf2-sys = { version = "0.1.0", path = "../ekf2-sys" }
+ekf2-sys = { version = "0.1.0", path = "../ekf2-sys", default-features = false }
 
 [dev-dependencies]
 static_cell = "2"

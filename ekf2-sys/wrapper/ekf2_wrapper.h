@@ -317,12 +317,6 @@ bool ekf2_update(void* self);
  */
 void ekf2_destroy(void* self);
 
-/**
- * Reset the filter: destroy in-place and re-construct + re-init.
- * No memory is freed or allocated for the Ekf object itself.
- */
-bool ekf2_reset(void* self, uint64_t timestamp_us);
-
 /* =========================================================================
  * Sensor inputs — always available (IMU is mandatory)
  * ========================================================================= */
@@ -596,6 +590,9 @@ void ekf2_get_ctrl_limits(const void* self, float* vxy_max, float* vz_max,
 /** Query the WGS-84 origin set in the EKF. */
 void ekf2_get_global_origin(const void* self, uint64_t* time_us,
                              double* lat, double* lon, float* alt);
+
+/** Return whether a WGS-84 latitude/longitude origin has been established. */
+bool ekf2_global_origin_valid(const void* self);
 
 /**
  * Set the WGS-84 origin used for local↔global position conversion.

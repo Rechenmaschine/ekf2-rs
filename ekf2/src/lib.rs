@@ -5,7 +5,7 @@
 //! ```no_run
 //! use ekf2::{Ekf, types::ImuSample};
 //!
-//! let mut ekf = Ekf::new(0).expect("EKF init failed");
+//! let mut ekf = Ekf::new().expect("EKF allocation failed");
 //!
 //! // Feed IMU data at 100 Hz
 //! for i in 0..1000_u64 {
@@ -18,7 +18,7 @@
 //!         0.01,
 //!     );
 //!     ekf.set_imu_data(&sample);
-//!     ekf.update().unwrap();
+//!     let _ = ekf.update();
 //! }
 //!
 //! if ekf.attitude_valid() {
@@ -36,9 +36,9 @@
 //! # Memory model
 //!
 //! [`Ekf::new`] creates the heap-owned C++ object using Rust's global
-//! allocator. [`Ekf::new_in`] accepts any `allocator-api2` allocator. The
-//! selected allocator is passed to C++ as per-instance callbacks and is used
-//! for the object and all of its owned dynamic storage.
+//! allocator. [`Ekf::new_in`] and [`Ekf::with_config_in`] accept any `allocator-api2`
+//! allocator. The selected allocator is passed to C++ as per-instance callbacks
+//! and is used for the object and all of its owned dynamic storage.
 //!
 //! # no_std
 //!
@@ -54,7 +54,7 @@ pub mod error;
 pub mod params;
 pub mod types;
 
-pub use ekf::Ekf;
+pub use ekf::{Ekf, EkfConfig};
 pub use error::EkfError;
 pub use params::{
     BaroControl, ControlStatus, ExternalVisionControl, FaultStatus, FlowGyroSource,

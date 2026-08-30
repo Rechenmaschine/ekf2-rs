@@ -71,6 +71,7 @@ static inline void copy_vec3_to_array(const Vector3f &v, float out[3])
     out[2] = v(2);
 }
 
+#if defined(CONFIG_EKF2_GNSS) || defined(CONFIG_EKF2_BAROMETER) || defined(CONFIG_EKF2_EXTERNAL_VISION)
 static inline void copy_bias_status_to_c(const BiasEstimator::status &in, EkfBiasEstimatorStatus *out)
 {
     if (!out) {
@@ -83,6 +84,7 @@ static inline void copy_bias_status_to_c(const BiasEstimator::status &in, EkfBia
     out->innov_var = in.innov_var;
     out->innov_test_ratio = in.innov_test_ratio;
 }
+#endif
 
 
 // ── Layout verification ───────────────────────────────────────────────────
@@ -233,14 +235,6 @@ extern "C" bool ekf2_update(void* self)
 extern "C" void ekf2_destroy(void* self)
 {
     as_ekf(self)->~Ekf();
-}
-
-extern "C" bool ekf2_reset(void* self, uint64_t timestamp_us)
-{
-    const EkfAllocator allocator = as_ekf(self)->allocator();
-    as_ekf(self)->~Ekf();
-    ::new (self) Ekf(allocator);
-    return as_ekf(self)->init(timestamp_us);
 }
 
 // ── IMU (always present) ──────────────────────────────────────────────────
@@ -807,6 +801,11 @@ extern "C" void ekf2_get_global_origin(const void* self, uint64_t* time_us,
                                         double* lat, double* lon, float* alt)
 {
     as_ekf(self)->getEkfGlobalOrigin(*time_us, *lat, *lon, *alt);
+}
+
+extern "C" bool ekf2_global_origin_valid(const void* self)
+{
+    return as_ekf(self)->global_origin_valid();
 }
 
 extern "C" bool ekf2_set_global_origin(void* self, double lat, double lon, float alt,

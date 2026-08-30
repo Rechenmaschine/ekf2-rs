@@ -56,7 +56,7 @@ fn run_raw_replay_probe(expectations: &ReplayProbeExpectations) {
     let mut last_mag_ts = 0_u64;
     let mut last_baro_ts = 0_u64;
     let mut imu_samples = 0_usize;
-    let mut update_failures = 0_usize;
+    let mut skipped_updates = 0_usize;
     let mut update_success = 0_usize;
     let mut gps_samples = 0_usize;
     let mut mag_samples = 0_usize;
@@ -100,7 +100,7 @@ fn run_raw_replay_probe(expectations: &ReplayProbeExpectations) {
                     if ekf2_update(ptr) {
                         update_success += 1;
                     } else {
-                        update_failures += 1;
+                        skipped_updates += 1;
                     }
                 }
             }
@@ -141,7 +141,8 @@ fn run_raw_replay_probe(expectations: &ReplayProbeExpectations) {
                     parse_f32(&parts, 6),
                     parse_f32(&parts, 7),
                 ];
-                let gps = EkfGnssSample::new(ts, lat, lon, alt_m, vel_ned, 0.5, 0.8, 0.2, 3, 16);
+                let gps =
+                    EkfGnssSample::new(ts, lat, lon, alt_m, vel_ned, 0.5, 0.8, 0.2, 1.0, 3, 16);
                 unsafe {
                     ekf2_sys::ekf2_set_gps_data(ptr, &gps);
                 }
@@ -187,12 +188,12 @@ fn run_raw_replay_probe(expectations: &ReplayProbeExpectations) {
         expectations.min_successful_updates
     );
     assert!(
-        update_failures < imu_samples,
-        "all updates failed: {update_failures}/{imu_samples}"
+        skipped_updates < imu_samples,
+        "no updates completed: {skipped_updates}/{imu_samples} skipped"
     );
     assert!(
-        update_success + update_failures == imu_samples,
-        "update accounting mismatch: success={update_success}, fail={update_failures}, imu={imu_samples}"
+        update_success + skipped_updates == imu_samples,
+        "update accounting mismatch: success={update_success}, skipped={skipped_updates}, imu={imu_samples}"
     );
 
     unsafe { ekf2_destroy(ptr) };
