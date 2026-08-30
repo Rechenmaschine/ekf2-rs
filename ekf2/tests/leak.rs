@@ -3,11 +3,11 @@ use std::sync::atomic::{AtomicIsize, Ordering::Relaxed};
 
 use ekf2::{types::ImuSample, Ekf};
 
-#[cfg(feature = "barometer")]
+#[cfg(all(feature = "gnss", feature = "magnetometer", feature = "barometer"))]
 use ekf2::types::BaroSample;
-#[cfg(feature = "gnss")]
+#[cfg(all(feature = "gnss", feature = "magnetometer", feature = "barometer"))]
 use ekf2::types::GnssSample;
-#[cfg(feature = "magnetometer")]
+#[cfg(all(feature = "gnss", feature = "magnetometer", feature = "barometer"))]
 use ekf2::types::MagSample;
 
 // ── Tracking allocator ───────────────────────────────────────────────────────
