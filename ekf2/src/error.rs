@@ -6,12 +6,6 @@ pub enum EkfError {
     /// Allocating memory for the EKF object failed.
     AllocFailed,
 
-    /// The C++ `Ekf::init()` returned `false`.
-    InitFailed,
-
-    /// The C++ `Ekf::update()` returned `false`.
-    UpdateFailed,
-
     /// A fallible operation returned `false`.
     OperationFailed,
 }
@@ -20,8 +14,6 @@ impl core::fmt::Display for EkfError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Self::AllocFailed => write!(f, "EKF allocation failed"),
-            Self::InitFailed => write!(f, "Ekf::init() returned false"),
-            Self::UpdateFailed => write!(f, "Ekf::update() returned false"),
             Self::OperationFailed => write!(f, "EKF operation failed"),
         }
     }

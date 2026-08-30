@@ -10,7 +10,7 @@ Run with: cargo run -p ekf2 --example gnss_mag_baro --features 'gnss,magnetomete
 fn main() -> Result<(), ekf2::EkfError> {
     use ekf2::{
         types::{BaroSample, GnssSample, ImuSample, MagSample},
-        Ekf, EkfError, HeightReference,
+        Ekf, HeightReference,
     };
 
     let mut ekf = Ekf::new()?;
@@ -23,7 +23,7 @@ fn main() -> Result<(), ekf2::EkfError> {
     }
 
     let dt_s = 0.01_f32;
-    let mut update_failed = 0_u32;
+    let mut skipped_updates = 0_u32;
 
     let mut lat = 47.397742_f64;
     let mut lon = 8.545594_f64;
@@ -71,8 +71,8 @@ fn main() -> Result<(), ekf2::EkfError> {
             ekf.set_baro_data(&baro);
         }
 
-        if let Err(EkfError::UpdateFailed) = ekf.update() {
-            update_failed += 1;
+        if !ekf.update() {
+            skipped_updates += 1;
         }
     }
 
@@ -83,7 +83,7 @@ fn main() -> Result<(), ekf2::EkfError> {
     println!("velocity_ned: {:?}", ekf.velocity_ned());
     println!("pos_var: {:?}", ekf.pos_variance());
     println!("vel_var: {:?}", ekf.vel_variance());
-    println!("update_failed_count: {update_failed}");
+    println!("skipped_update_count: {skipped_updates}");
 
     Ok(())
 }

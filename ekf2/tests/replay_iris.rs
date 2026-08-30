@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use ekf2::{
     types::{BaroSample, GnssSample, ImuSample, MagSample},
-    AidSource2d, Ekf, EkfError, SolnStatus,
+    AidSource2d, Ekf, SolnStatus,
 };
 
 fn fixture_path(file: &str) -> PathBuf {
@@ -54,7 +54,7 @@ struct ReplayOutcome {
     mag_samples: usize,
     baro_samples: usize,
     gps_samples: usize,
-    update_failures: usize,
+    skipped_updates: usize,
 }
 
 struct ReplayExpectations {
@@ -96,7 +96,7 @@ fn replay_fixture_into_ekf(expectations: &ReplayExpectations) -> ReplayOutcome {
     let mut mag_samples = 0_usize;
     let mut baro_samples = 0_usize;
     let mut gps_samples = 0_usize;
-    let mut update_failures = 0_usize;
+    let mut skipped_updates = 0_usize;
 
     for line in BufReader::new(replay_file).lines() {
         let line = line.expect("failed to read replay line");
@@ -135,8 +135,8 @@ fn replay_fixture_into_ekf(expectations: &ReplayExpectations) -> ReplayOutcome {
                 );
 
                 ekf.set_imu_data(&imu);
-                if let Err(EkfError::UpdateFailed) = ekf.update() {
-                    update_failures += 1;
+                if !ekf.update() {
+                    skipped_updates += 1;
                 }
             }
             "mag" => {
@@ -218,7 +218,7 @@ fn replay_fixture_into_ekf(expectations: &ReplayExpectations) -> ReplayOutcome {
         mag_samples,
         baro_samples,
         gps_samples,
-        update_failures,
+        skipped_updates,
     }
 }
 
@@ -296,16 +296,16 @@ fn assert_replay_matches_reference(expectations: &ReplayExpectations) {
         expectations.min_gps_samples
     );
     assert!(
-        outcome.update_failures < outcome.imu_samples,
-        "all EKF updates failed during replay: {} / {}",
-        outcome.update_failures,
+        outcome.skipped_updates < outcome.imu_samples,
+        "no EKF updates completed during replay: {} / {} skipped",
+        outcome.skipped_updates,
         outcome.imu_samples
     );
     assert!(
-        outcome.imu_samples - outcome.update_failures > expectations.min_successful_updates,
+        outcome.imu_samples - outcome.skipped_updates > expectations.min_successful_updates,
         "{} replay had too few successful EKF updates: {} / {} (expected > {})",
         expectations.name,
-        outcome.imu_samples - outcome.update_failures,
+        outcome.imu_samples - outcome.skipped_updates,
         outcome.imu_samples,
         expectations.min_successful_updates
     );

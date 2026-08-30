@@ -3,7 +3,7 @@ use ekf2::{types::ImuSample, Ekf, EkfError};
 fn main() -> Result<(), EkfError> {
     let mut ekf = Ekf::new()?;
     let dt_s = 0.01_f32;
-    let mut update_failed = 0_u32;
+    let mut skipped_updates = 0_u32;
 
     for i in 1..=2_000_u64 {
         let ts_us = 1_000_000 + i * 10_000;
@@ -20,8 +20,8 @@ fn main() -> Result<(), EkfError> {
         );
 
         ekf.set_imu_data(&imu);
-        if let Err(EkfError::UpdateFailed) = ekf.update() {
-            update_failed += 1;
+        if !ekf.update() {
+            skipped_updates += 1;
         }
     }
 
@@ -31,7 +31,7 @@ fn main() -> Result<(), EkfError> {
     println!("q: {:?}", ekf.quaternion());
     println!("vel_ned: {:?}", ekf.velocity_ned());
     println!("pos_var: {:?}", ekf.pos_variance());
-    println!("update_failed_count: {update_failed}");
+    println!("skipped_update_count: {skipped_updates}");
 
     Ok(())
 }

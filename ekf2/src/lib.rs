@@ -18,7 +18,7 @@
 //!         0.01,
 //!     );
 //!     ekf.set_imu_data(&sample);
-//!     ekf.update().unwrap();
+//!     let _ = ekf.update();
 //! }
 //!
 //! if ekf.attitude_valid() {

@@ -1,4 +1,4 @@
-use ekf2::{types::ImuSample, Ekf, EkfError};
+use ekf2::{types::ImuSample, Ekf};
 
 mod common;
 use common::{feed_imu, quat_norm, yaw_from_quaternion};
@@ -73,7 +73,7 @@ fn many_instances_stay_independent() {
         );
     }
 
-    let mut update_failed = [0_u32; INSTANCES];
+    let mut skipped_updates = [0_u32; INSTANCES];
     let center = (INSTANCES as f32 - 1.0) * 0.5;
 
     for step in 1..=1_200_u64 {
@@ -90,8 +90,8 @@ fn many_instances_stay_independent() {
                 DT_S,
             );
             ekf.set_imu_data(&imu);
-            if let Err(EkfError::UpdateFailed) = ekf.update() {
-                update_failed[i] += 1;
+            if !ekf.update() {
+                skipped_updates[i] += 1;
             }
         }
     }
@@ -105,9 +105,9 @@ fn many_instances_stay_independent() {
         );
         yaws.push(yaw_from_quaternion(q));
         assert!(
-            update_failed[i] < 40,
-            "ekf[{i}] had too many update failures: {}",
-            update_failed[i]
+            skipped_updates[i] < 40,
+            "ekf[{i}] skipped too many updates: {}",
+            skipped_updates[i]
         );
     }
 

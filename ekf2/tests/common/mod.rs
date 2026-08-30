@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use ekf2::{types::ImuSample, Ekf, EkfError};
+use ekf2::{types::ImuSample, Ekf};
 #[cfg(unix)]
 use std::process::Command;
 
@@ -23,7 +23,7 @@ pub struct Snapshot {
 
 pub fn feed_imu(ekf: &mut Ekf, start_ts: u64, steps: u64, yaw_rate_z: f32) -> u32 {
     let dt_s = 0.01_f32;
-    let mut update_failed = 0_u32;
+    let mut skipped_updates = 0_u32;
 
     for i in 0..steps {
         let ts = start_ts + i * 10_000;
@@ -35,12 +35,12 @@ pub fn feed_imu(ekf: &mut Ekf, start_ts: u64, steps: u64, yaw_rate_z: f32) -> u3
             dt_s,
         );
         ekf.set_imu_data(&imu);
-        if let Err(EkfError::UpdateFailed) = ekf.update() {
-            update_failed += 1;
+        if !ekf.update() {
+            skipped_updates += 1;
         }
     }
 
-    update_failed
+    skipped_updates
 }
 
 pub fn yaw_from_quaternion(q: [f32; 4]) -> f32 {
